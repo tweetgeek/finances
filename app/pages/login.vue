@@ -10,23 +10,23 @@
       </template>
 
       <form @submit.prevent="handleLogin" class="space-y-6">
-        <UFormGroup label="Email" name="email" required>
+        <UFormField label="Email" name="email" required>
           <UInput
             v-model="email"
             type="email"
             placeholder="your@email.com"
             required
           />
-        </UFormGroup>
+        </UFormField>
 
-        <UFormGroup label="Hasło" name="password" required>
+        <UFormField label="Hasło" name="password" required>
           <UInput
             v-model="password"
             type="password"
             placeholder="••••••••"
             required
           />
-        </UFormGroup>
+        </UFormField>
 
         <UButton type="submit" block :loading="loading"> Zaloguj się </UButton>
 
