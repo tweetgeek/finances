@@ -1,28 +1,30 @@
-import type { Database } from '~/types/database'
+import type { Database } from '~/types/database';
+
+import { serverSupabaseClient } from '#supabase/server';
 
 export default defineEventHandler(async (event) => {
-  const config = useRuntimeConfig()
+  const config = useRuntimeConfig();
 
   // Verify webhook secret
-  const webhookSecret = getHeader(event, 'x-webhook-secret')
+  const webhookSecret = getHeader(event, 'x-webhook-secret');
   if (webhookSecret !== config.WEBHOOK_SECRET) {
     throw createError({
       statusCode: 401,
-      statusMessage: 'Unauthorized: Invalid webhook secret'
-    })
+      statusMessage: 'Unauthorized: Invalid webhook secret',
+    });
   }
 
-  const body = await readBody(event)
+  const body = await readBody(event);
 
   // Get Supabase admin client
-  const supabase = serverSupabaseClient<Database>(event)
-  const ownerId = config.OWNER_USER_ID
+  const supabase = await serverSupabaseClient<Database>(event);
+  const ownerId = config.OWNER_USER_ID;
 
   if (!ownerId) {
     throw createError({
       statusCode: 500,
-      statusMessage: 'Server misconfiguration: OWNER_USER_ID not set'
-    })
+      statusMessage: 'Server misconfiguration: OWNER_USER_ID not set',
+    });
   }
 
   try {
@@ -44,16 +46,16 @@ export default defineEventHandler(async (event) => {
         deductible_override: body.deductible_override ?? null,
         deductible_ratio: body.deductible_ratio ?? null,
         is_paid: body.is_paid ?? false,
-        paid_at: body.paid_at || null
+        paid_at: body.paid_at || null,
       })
       .select()
-      .single()
+      .single();
 
     if (expenseError) {
       throw createError({
         statusCode: 400,
-        statusMessage: expenseError.message
-      })
+        statusMessage: expenseError.message,
+      });
     }
 
     // Handle categories if provided
@@ -65,9 +67,9 @@ export default defineEventHandler(async (event) => {
           .select('id')
           .eq('user_id', ownerId)
           .eq('name', categoryName)
-          .maybeSingle()
+          .maybeSingle();
 
-        let categoryId = existingCategory?.id
+        let categoryId = existingCategory?.id;
 
         // Create category if it doesn't exist
         if (!categoryId) {
@@ -77,39 +79,37 @@ export default defineEventHandler(async (event) => {
               user_id: ownerId,
               name: categoryName,
               is_deductible_in_company: false,
-              default_deductible_ratio: 1.0
+              default_deductible_ratio: 1.0,
             })
             .select('id')
-            .single()
+            .single();
 
           if (categoryError) {
-            console.error('Error creating category:', categoryError)
-            continue
+            console.error('Error creating category:', categoryError);
+            continue;
           }
 
-          categoryId = newCategory.id
+          categoryId = newCategory.id;
         }
 
         // Link category to expense
         if (categoryId) {
-          await supabase
-            .from('expense_categories')
-            .insert({
-              expense_id: expense.id,
-              category_id: categoryId
-            })
+          await supabase.from('expense_categories').insert({
+            expense_id: expense.id,
+            category_id: categoryId,
+          });
         }
       }
     }
 
     return {
       success: true,
-      expense
-    }
+      expense,
+    };
   } catch (error: any) {
     throw createError({
       statusCode: 400,
-      statusMessage: error.message || 'Error creating expense'
-    })
+      statusMessage: error.message || 'Error creating expense',
+    });
   }
-})
+});
