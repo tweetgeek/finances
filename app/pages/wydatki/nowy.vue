@@ -1,7 +1,11 @@
 <template>
   <div>
     <div class="mb-8">
-      <UButton variant="ghost" icon="i-heroicons-arrow-left" @click="$router.push('/wydatki')">
+      <UButton
+        variant="ghost"
+        icon="i-heroicons-arrow-left"
+        @click="$router.push('/wydatki')"
+      >
         Powrót do listy
       </UButton>
       <h1 class="text-3xl font-bold mt-4">Dodaj wydatek</h1>
@@ -11,27 +15,30 @@
       <form @submit.prevent="handleSubmit" class="space-y-6">
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
           <!-- Basic Info -->
-          <UFormGroup label="Tytuł" name="title" required>
+          <UFormField label="Tytuł" name="title" required>
             <UInput v-model="form.title" placeholder="Nazwa wydatku" required />
-          </UFormGroup>
+          </UFormField>
 
-          <UFormGroup label="Kontrahent" name="counterparty">
-            <UInput v-model="form.counterparty" placeholder="Nazwa kontrahenta" />
-          </UFormGroup>
+          <UFormField label="Kontrahent" name="counterparty">
+            <UInput
+              v-model="form.counterparty"
+              placeholder="Nazwa kontrahenta"
+            />
+          </UFormField>
 
-          <UFormGroup label="Numer faktury" name="invoice_number">
+          <UFormField label="Numer faktury" name="invoice_number">
             <UInput v-model="form.invoice_number" placeholder="FV/01/2025" />
-          </UFormGroup>
+          </UFormField>
 
-          <UFormGroup label="Data wystawienia" name="issue_date" required>
+          <UFormField label="Data wystawienia" name="issue_date" required>
             <UInput v-model="form.issue_date" type="date" required />
-          </UFormGroup>
+          </UFormField>
 
-          <UFormGroup label="Termin płatności" name="due_date">
+          <UFormField label="Termin płatności" name="due_date">
             <UInput v-model="form.due_date" type="date" />
-          </UFormGroup>
+          </UFormField>
 
-          <UFormGroup label="Stawka VAT (%)" name="vat_rate" required>
+          <UFormField label="Stawka VAT (%)" name="vat_rate" required>
             <USelect
               v-model="form.vat_rate"
               :options="[
@@ -39,17 +46,17 @@
                 { label: '8%', value: 8 },
                 { label: '5%', value: 5 },
                 { label: '0%', value: 0 },
-                { label: 'Zwolnione', value: -1 }
+                { label: 'Zwolnione', value: -1 },
               ]"
             />
-          </UFormGroup>
+          </UFormField>
         </div>
 
         <!-- Amount Calculation -->
         <div class="border-t border-gray-200 dark:border-gray-700 pt-6">
           <h3 class="text-lg font-semibold mb-4">Kwoty</h3>
           <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <UFormGroup label="Kwota netto" name="amount_net">
+            <UFormField label="Kwota netto" name="amount_net">
               <UInput
                 v-model="form.amount_net"
                 type="number"
@@ -58,9 +65,9 @@
                 @input="calculateFromNet"
                 @focus="activeField = 'net'"
               />
-            </UFormGroup>
+            </UFormField>
 
-            <UFormGroup label="Kwota brutto" name="amount_gross">
+            <UFormField label="Kwota brutto" name="amount_gross">
               <UInput
                 v-model="form.amount_gross"
                 type="number"
@@ -69,9 +76,9 @@
                 @input="calculateFromGross"
                 @focus="activeField = 'gross'"
               />
-            </UFormGroup>
+            </UFormField>
 
-            <UFormGroup label="VAT" name="vat_amount">
+            <UFormField label="VAT" name="vat_amount">
               <UInput
                 :model-value="form.vat_amount"
                 type="number"
@@ -79,23 +86,32 @@
                 disabled
                 class="bg-gray-50 dark:bg-gray-800"
               />
-            </UFormGroup>
+            </UFormField>
           </div>
         </div>
 
         <!-- Categories -->
         <div class="border-t border-gray-200 dark:border-gray-700 pt-6">
           <h3 class="text-lg font-semibold mb-4">Kategorie</h3>
-          <div v-if="loadingCategories" class="text-gray-500">Ładowanie kategorii...</div>
+          <div v-if="loadingCategories" class="text-gray-500">
+            Ładowanie kategorii...
+          </div>
           <div v-else-if="categories.length === 0" class="text-gray-500">
-            Brak dostępnych kategorii. <NuxtLink to="/kategorie" class="text-primary-500">Dodaj kategorie</NuxtLink>
+            Brak dostępnych kategorii.
+            <NuxtLink to="/kategorie" class="text-primary-500"
+              >Dodaj kategorie</NuxtLink
+            >
           </div>
           <div v-else class="flex flex-wrap gap-2">
             <UButton
               v-for="category in categories"
               :key="category.id"
-              :color="form.category_ids.includes(category.id) ? 'primary' : 'gray'"
-              :variant="form.category_ids.includes(category.id) ? 'solid' : 'outline'"
+              :color="
+                form.category_ids.includes(category.id) ? 'primary' : 'gray'
+              "
+              :variant="
+                form.category_ids.includes(category.id) ? 'solid' : 'outline'
+              "
               @click="toggleCategory(category.id)"
             >
               <div class="flex items-center space-x-2">
@@ -113,23 +129,26 @@
         <div class="border-t border-gray-200 dark:border-gray-700 pt-6">
           <h3 class="text-lg font-semibold mb-4">Ustawienia</h3>
 
-          <UFormGroup label="Wydatek firmowy" name="is_company" class="mb-4">
-            <UToggle v-model="form.is_company" />
-          </UFormGroup>
+          <UFormField label="Wydatek firmowy" name="is_company" class="mb-4">
+            <USwitch v-model="form.is_company" />
+          </UFormField>
 
-          <div v-if="form.is_company" class="space-y-4 pl-4 border-l-2 border-primary-500">
-            <UFormGroup label="Odliczalność" name="deductible_override">
+          <div
+            v-if="form.is_company"
+            class="space-y-4 pl-4 border-l-2 border-primary-500"
+          >
+            <UFormField label="Odliczalność" name="deductible_override">
               <USelect
                 v-model="form.deductible_override"
                 :options="[
                   { label: 'Dziedzicz z kategorii', value: null },
                   { label: 'Odliczalne', value: true },
-                  { label: 'Nieodliczalne', value: false }
+                  { label: 'Nieodliczalne', value: false },
                 ]"
               />
-            </UFormGroup>
+            </UFormField>
 
-            <UFormGroup
+            <UFormField
               v-if="form.deductible_override !== false"
               label="Proporcja odliczenia (%)"
               name="deductible_ratio"
@@ -142,33 +161,44 @@
                 step="1"
                 placeholder="100"
               />
-            </UFormGroup>
+            </UFormField>
           </div>
 
-          <UFormGroup label="Opłacone" name="is_paid" class="mt-4">
-            <UToggle v-model="form.is_paid" />
-          </UFormGroup>
+          <UFormField label="Opłacone" name="is_paid" class="mt-4">
+            <USwitch v-model="form.is_paid" />
+          </UFormField>
 
-          <UFormGroup v-if="form.is_paid" label="Data płatności" name="paid_at" class="mt-4">
+          <UFormField
+            v-if="form.is_paid"
+            label="Data płatności"
+            name="paid_at"
+            class="mt-4"
+          >
             <UInput v-model="form.paid_at" type="date" />
-          </UFormGroup>
+          </UFormField>
         </div>
 
         <!-- Note -->
         <div class="border-t border-gray-200 dark:border-gray-700 pt-6">
-          <UFormGroup label="Notatka" name="note">
-            <UTextarea v-model="form.note" placeholder="Dodatkowe informacje..." rows="3" />
-          </UFormGroup>
+          <UFormField label="Notatka" name="note">
+            <UTextarea
+              v-model="form.note"
+              placeholder="Dodatkowe informacje..."
+              rows="3"
+            />
+          </UFormField>
         </div>
 
         <!-- Submit -->
         <div class="flex justify-end space-x-4 pt-6">
-          <UButton color="gray" variant="ghost" @click="$router.push('/wydatki')">
+          <UButton
+            color="neutral"
+            variant="ghost"
+            @click="$router.push('/wydatki')"
+          >
             Anuluj
           </UButton>
-          <UButton type="submit" :loading="saving">
-            Zapisz wydatek
-          </UButton>
+          <UButton type="submit" :loading="saving"> Zapisz wydatek </UButton>
         </div>
       </form>
     </UCard>
@@ -176,23 +206,23 @@
 </template>
 
 <script setup lang="ts">
-import type { Database } from '~/types/database'
+import type { Database } from '~/types/database';
 
 definePageMeta({
-  middleware: 'auth'
-})
+  middleware: 'auth',
+});
 
-type Category = Database['public']['Tables']['categories']['Row']
+type Category = Database['public']['Tables']['categories']['Row'];
 
-const supabase = useSupabaseClient<Database>()
-const user = useSupabaseUser()
-const router = useRouter()
-const { fromNet, fromGross } = useVat()
+const supabase = useSupabaseClient<Database>();
+const user = useSupabaseUser();
+const router = useRouter();
+const { fromNet, fromGross } = useVat();
 
-const categories = ref<Category[]>([])
-const loadingCategories = ref(true)
-const saving = ref(false)
-const activeField = ref<'net' | 'gross'>('gross')
+const categories = ref<Category[]>([]);
+const loadingCategories = ref(true);
+const saving = ref(false);
+const activeField = ref<'net' | 'gross'>('gross');
 
 const form = reactive({
   title: '',
@@ -210,73 +240,79 @@ const form = reactive({
   deductible_ratio_percent: null as number | null,
   is_paid: false,
   paid_at: '',
-  category_ids: [] as string[]
-})
+  category_ids: [] as string[],
+});
 
 const loadCategories = async () => {
-  if (!user.value) return
+  if (!user.value) return;
 
-  loadingCategories.value = true
+  loadingCategories.value = true;
   const { data, error } = await supabase
     .from('categories')
     .select('*')
-    .eq('user_id', user.value.id)
-    .order('name')
+    .eq('user_id', user.value.sub)
+    .order('name');
 
   if (error) {
-    console.error('Error loading categories:', error)
+    console.error('Error loading categories:', error);
   } else {
-    categories.value = data || []
+    categories.value = data || [];
   }
-  loadingCategories.value = false
-}
+  loadingCategories.value = false;
+};
 
 const calculateFromNet = () => {
-  if (activeField.value !== 'net') return
+  if (activeField.value !== 'net') return;
   if (form.amount_net === null || form.amount_net === 0) {
-    form.amount_gross = null
-    form.vat_amount = 0
-    return
+    form.amount_gross = null;
+    form.vat_amount = 0;
+    return;
   }
 
-  const result = fromNet(form.amount_net, form.vat_rate === -1 ? 0 : form.vat_rate)
-  form.amount_gross = result.gross
-  form.vat_amount = result.vat
-}
+  const result = fromNet(
+    form.amount_net,
+    form.vat_rate === -1 ? 0 : form.vat_rate
+  );
+  form.amount_gross = result.gross;
+  form.vat_amount = result.vat;
+};
 
 const calculateFromGross = () => {
-  if (activeField.value !== 'gross') return
+  if (activeField.value !== 'gross') return;
   if (form.amount_gross === null || form.amount_gross === 0) {
-    form.amount_net = null
-    form.vat_amount = 0
-    return
+    form.amount_net = null;
+    form.vat_amount = 0;
+    return;
   }
 
-  const result = fromGross(form.amount_gross, form.vat_rate === -1 ? 0 : form.vat_rate)
-  form.amount_net = result.net
-  form.vat_amount = result.vat
-}
+  const result = fromGross(
+    form.amount_gross,
+    form.vat_rate === -1 ? 0 : form.vat_rate
+  );
+  form.amount_net = result.net;
+  form.vat_amount = result.vat;
+};
 
 const toggleCategory = (categoryId: string) => {
-  const index = form.category_ids.indexOf(categoryId)
+  const index = form.category_ids.indexOf(categoryId);
   if (index > -1) {
-    form.category_ids.splice(index, 1)
+    form.category_ids.splice(index, 1);
   } else {
-    form.category_ids.push(categoryId)
+    form.category_ids.push(categoryId);
   }
-}
+};
 
 const handleSubmit = async () => {
-  if (!user.value) return
+  if (!user.value) return;
 
-  saving.value = true
+  saving.value = true;
 
   try {
     // Insert expense
     const { data: expense, error: expenseError } = await supabase
       .from('expenses')
       .insert({
-        user_id: user.value.id,
+        user_id: user.value.sub,
         title: form.title,
         note: form.note || null,
         counterparty: form.counterparty || null,
@@ -288,46 +324,52 @@ const handleSubmit = async () => {
         amount_gross: form.amount_gross,
         is_company: form.is_company,
         deductible_override: form.deductible_override,
-        deductible_ratio: form.deductible_ratio_percent !== null ? form.deductible_ratio_percent / 100 : null,
+        deductible_ratio:
+          form.deductible_ratio_percent !== null
+            ? form.deductible_ratio_percent / 100
+            : null,
         is_paid: form.is_paid,
-        paid_at: form.paid_at || null
+        paid_at: form.paid_at || null,
       })
       .select()
-      .single()
+      .single();
 
-    if (expenseError) throw expenseError
+    if (expenseError) throw expenseError;
 
     // Insert categories
     if (form.category_ids.length > 0) {
-      const categoryInserts = form.category_ids.map(categoryId => ({
+      const categoryInserts = form.category_ids.map((categoryId) => ({
         expense_id: expense.id,
-        category_id: categoryId
-      }))
+        category_id: categoryId,
+      }));
 
       const { error: categoryError } = await supabase
         .from('expense_categories')
-        .insert(categoryInserts)
+        .insert(categoryInserts);
 
-      if (categoryError) throw categoryError
+      if (categoryError) throw categoryError;
     }
 
-    router.push('/wydatki')
+    router.push('/wydatki');
   } catch (error) {
-    console.error('Error saving expense:', error)
+    console.error('Error saving expense:', error);
   } finally {
-    saving.value = false
+    saving.value = false;
   }
-}
+};
 
-watch(() => form.vat_rate, () => {
-  if (activeField.value === 'net' && form.amount_net) {
-    calculateFromNet()
-  } else if (activeField.value === 'gross' && form.amount_gross) {
-    calculateFromGross()
+watch(
+  () => form.vat_rate,
+  () => {
+    if (activeField.value === 'net' && form.amount_net) {
+      calculateFromNet();
+    } else if (activeField.value === 'gross' && form.amount_gross) {
+      calculateFromGross();
+    }
   }
-})
+);
 
 onMounted(() => {
-  loadCategories()
-})
+  loadCategories();
+});
 </script>
