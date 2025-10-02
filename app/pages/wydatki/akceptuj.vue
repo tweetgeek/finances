@@ -68,10 +68,10 @@
               </div>
               <div class="text-right">
                 <div class="text-2xl font-bold">
-                  {{ formatCurrency(suggestion.amount_gross) }}
+                  {{ formatCurrency(suggestion.amount_gross, suggestion.currency_code || 'PLN') }}
                 </div>
                 <div class="text-sm text-gray-500">
-                  Netto: {{ formatCurrency(suggestion.amount_net) }}
+                  Netto: {{ formatCurrency(suggestion.amount_net, suggestion.currency_code || 'PLN') }}
                 </div>
                 <div class="text-xs text-gray-400">
                   VAT {{ suggestion.vat_rate }}%
@@ -141,7 +141,7 @@
           <div class="flex-1">
             <div class="font-medium">{{ recurring.title }}</div>
             <div class="text-sm text-gray-500">
-              {{ formatCurrency(recurring.amount_gross) }} •
+              {{ formatCurrency(recurring.amount_gross, recurring.currency_code || 'PLN') }} •
               {{ formatFrequency(recurring.frequency) }}
             </div>
           </div>
@@ -188,8 +188,15 @@
             <UInput v-model="recurringForm.counterparty" />
           </UFormField>
 
+          <UFormField label="Waluta" name="currency_code">
+            <USelect
+              v-model="recurringForm.currency_code"
+              :items="availableCurrencies"
+            />
+          </UFormField>
+
           <div class="grid grid-cols-2 gap-4">
-            <UFormField label="Kwota netto" name="amount_net">
+            <UFormField :label="`Kwota netto (${recurringForm.currency_code})`" name="amount_net">
               <UInput
                 v-model="recurringForm.amount_net"
                 type="number"
@@ -197,7 +204,7 @@
               />
             </UFormField>
 
-            <UFormField label="Kwota brutto" name="amount_gross">
+            <UFormField :label="`Kwota brutto (${recurringForm.currency_code})`" name="amount_gross">
               <UInput
                 v-model="recurringForm.amount_gross"
                 type="number"
@@ -236,6 +243,28 @@
               min="1"
               max="31"
             />
+          </UFormField>
+
+          <UFormField label="Kategorie" name="categories">
+            <div class="space-y-2">
+              <div
+                v-for="category in categories"
+                :key="category.id"
+                class="flex items-center gap-2"
+              >
+                <UCheckbox
+                  :model-value="recurringForm.selectedCategories.some(c => c.id === category.id)"
+                  @update:model-value="(checked) => toggleCategory(category, checked)"
+                />
+                <div class="flex items-center gap-2">
+                  <div
+                    class="w-3 h-3 rounded-full"
+                    :style="{ backgroundColor: category.color || '#3b82f6' }"
+                  />
+                  <span>{{ category.name }}</span>
+                </div>
+              </div>
+            </div>
           </UFormField>
 
           <UFormField label="Wydatek firmowy" name="is_company">
@@ -281,6 +310,7 @@ interface RecurringSuggestion extends RecurringExpense {
 const supabase = useSupabaseClient<Database>();
 const user = useSupabaseUser();
 const router = useRouter();
+const { getExchangeRate, formatCurrency: formatCurrencyFn, availableCurrencies } = useCurrency();
 
 const suggestions = ref<RecurringSuggestion[]>([]);
 const recurringExpenses = ref<RecurringExpense[]>([]);
@@ -290,9 +320,12 @@ const showAddModal = ref(false);
 const editingRecurring = ref<RecurringExpense | null>(null);
 const saving = ref(false);
 
+const categories = ref<Category[]>([]);
+
 const recurringForm = reactive({
   title: '',
   counterparty: '',
+  currency_code: 'PLN',
   amount_net: null as number | null,
   amount_gross: null as number | null,
   vat_rate: 23,
@@ -300,7 +333,12 @@ const recurringForm = reactive({
   day_of_month: 1,
   is_company: false,
   note: '',
+  selectedCategories: [] as Category[],
 });
+
+const formatCurrency = (amount: number | null, currency: string = 'PLN') => {
+  return formatCurrencyFn(amount, currency);
+};
 
 const loadSuggestions = async () => {
   if (!user.value) return;
@@ -392,6 +430,22 @@ const acceptSuggestion = async (suggestion: RecurringSuggestion) => {
   acceptingIds.value.push(suggestion.id);
 
   try {
+    const today = new Date().toISOString().split('T')[0];
+    const currencyCode = suggestion.currency_code || 'PLN';
+
+    // Get exchange rate if not PLN
+    let exchangeRate = 1;
+    let amountNetPLN = suggestion.amount_net;
+    let amountGrossPLN = suggestion.amount_gross;
+    let vatAmountPLN = (suggestion.amount_gross || 0) - (suggestion.amount_net || 0);
+
+    if (currencyCode !== 'PLN') {
+      exchangeRate = await getExchangeRate(currencyCode, today);
+      amountNetPLN = suggestion.amount_net ? Math.round(suggestion.amount_net * exchangeRate * 100) / 100 : null;
+      amountGrossPLN = suggestion.amount_gross ? Math.round(suggestion.amount_gross * exchangeRate * 100) / 100 : null;
+      vatAmountPLN = amountGrossPLN && amountNetPLN ? amountGrossPLN - amountNetPLN : 0;
+    }
+
     // Create the expense
     const { data: expense, error: expenseError } = await supabase
       .from('expenses')
@@ -399,14 +453,19 @@ const acceptSuggestion = async (suggestion: RecurringSuggestion) => {
         user_id: user.value.sub,
         title: suggestion.title,
         counterparty: suggestion.counterparty,
+        currency_code: currencyCode,
         amount_net: suggestion.amount_net,
         amount_gross: suggestion.amount_gross,
+        exchange_rate: exchangeRate,
+        amount_net_pln: amountNetPLN,
+        amount_gross_pln: amountGrossPLN,
+        vat_amount_pln: vatAmountPLN,
         vat_rate: suggestion.vat_rate,
         is_company: suggestion.is_company,
         deductible_override: suggestion.deductible_override,
         deductible_ratio: suggestion.deductible_ratio,
         note: suggestion.note,
-        issue_date: new Date().toISOString().split('T')[0],
+        issue_date: today,
         is_paid: false,
       })
       .select()
@@ -474,11 +533,23 @@ const toggleRecurring = async (recurring: RecurringExpense) => {
   await loadSuggestions();
 };
 
-const editRecurring = (recurring: RecurringExpense) => {
+const editRecurring = async (recurring: RecurringExpense) => {
   editingRecurring.value = recurring;
+
+  // Load categories for this recurring expense
+  const { data: cats } = await supabase
+    .from('recurring_expense_categories')
+    .select('category_id, categories(*)')
+    .eq('recurring_expense_id', recurring.id);
+
+  const selectedCats = (cats || [])
+    .map((c) => c.categories)
+    .filter(Boolean) as Category[];
+
   Object.assign(recurringForm, {
     title: recurring.title,
     counterparty: recurring.counterparty || '',
+    currency_code: recurring.currency_code || 'PLN',
     amount_net: recurring.amount_net,
     amount_gross: recurring.amount_gross,
     vat_rate: recurring.vat_rate,
@@ -486,6 +557,7 @@ const editRecurring = (recurring: RecurringExpense) => {
     day_of_month: recurring.day_of_month || 1,
     is_company: recurring.is_company,
     note: recurring.note || '',
+    selectedCategories: selectedCats,
   });
   showAddModal.value = true;
 };
@@ -505,13 +577,17 @@ const saveRecurring = async () => {
   saving.value = true;
 
   try {
+    let recurringId: string;
+
     if (editingRecurring.value) {
       // Update existing
+      recurringId = editingRecurring.value.id;
       await supabase
         .from('recurring_expenses')
         .update({
           title: recurringForm.title,
           counterparty: recurringForm.counterparty || null,
+          currency_code: recurringForm.currency_code,
           amount_net: recurringForm.amount_net,
           amount_gross: recurringForm.amount_gross,
           vat_rate: recurringForm.vat_rate,
@@ -521,21 +597,45 @@ const saveRecurring = async () => {
           note: recurringForm.note || null,
         })
         .eq('id', editingRecurring.value.id);
+
+      // Delete existing categories
+      await supabase
+        .from('recurring_expense_categories')
+        .delete()
+        .eq('recurring_expense_id', recurringId);
     } else {
       // Create new
-      await supabase.from('recurring_expenses').insert({
-        user_id: user.value.sub,
-        title: recurringForm.title,
-        counterparty: recurringForm.counterparty || null,
-        amount_net: recurringForm.amount_net,
-        amount_gross: recurringForm.amount_gross,
-        vat_rate: recurringForm.vat_rate,
-        frequency: recurringForm.frequency,
-        day_of_month: recurringForm.day_of_month,
-        is_company: recurringForm.is_company,
-        note: recurringForm.note || null,
-        is_active: true,
-      });
+      const { data, error } = await supabase
+        .from('recurring_expenses')
+        .insert({
+          user_id: user.value.sub,
+          title: recurringForm.title,
+          counterparty: recurringForm.counterparty || null,
+          currency_code: recurringForm.currency_code,
+          amount_net: recurringForm.amount_net,
+          amount_gross: recurringForm.amount_gross,
+          vat_rate: recurringForm.vat_rate,
+          frequency: recurringForm.frequency,
+          day_of_month: recurringForm.day_of_month,
+          is_company: recurringForm.is_company,
+          note: recurringForm.note || null,
+          is_active: true,
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
+      recurringId = data.id;
+    }
+
+    // Add categories
+    if (recurringForm.selectedCategories.length > 0) {
+      const categoryInserts = recurringForm.selectedCategories.map((cat) => ({
+        recurring_expense_id: recurringId,
+        category_id: cat.id,
+      }));
+
+      await supabase.from('recurring_expense_categories').insert(categoryInserts);
     }
 
     showAddModal.value = false;
@@ -543,6 +643,7 @@ const saveRecurring = async () => {
     Object.assign(recurringForm, {
       title: '',
       counterparty: '',
+      currency_code: 'PLN',
       amount_net: null,
       amount_gross: null,
       vat_rate: 23,
@@ -550,6 +651,7 @@ const saveRecurring = async () => {
       day_of_month: 1,
       is_company: false,
       note: '',
+      selectedCategories: [],
     });
 
     await loadRecurringExpenses();
@@ -565,14 +667,6 @@ const formatDate = (date: string) => {
   return new Date(date).toLocaleDateString('pl-PL');
 };
 
-const formatCurrency = (amount: number | null) => {
-  if (amount === null) return '-';
-  return new Intl.NumberFormat('pl-PL', {
-    style: 'currency',
-    currency: 'PLN',
-  }).format(amount);
-};
-
 const formatFrequency = (frequency: string) => {
   const map: Record<string, string> = {
     monthly: 'Miesięcznie',
@@ -582,7 +676,36 @@ const formatFrequency = (frequency: string) => {
   return map[frequency] || frequency;
 };
 
+const loadCategories = async () => {
+  if (!user.value) return;
+
+  const { data, error } = await supabase
+    .from('categories')
+    .select('*')
+    .eq('user_id', user.value.sub)
+    .order('name');
+
+  if (error) {
+    console.error('Error loading categories:', error);
+  } else {
+    categories.value = data || [];
+  }
+};
+
+const toggleCategory = (category: Category, checked: boolean) => {
+  if (checked) {
+    if (!recurringForm.selectedCategories.some(c => c.id === category.id)) {
+      recurringForm.selectedCategories.push(category);
+    }
+  } else {
+    recurringForm.selectedCategories = recurringForm.selectedCategories.filter(
+      c => c.id !== category.id
+    );
+  }
+};
+
 onMounted(() => {
+  loadCategories();
   loadSuggestions();
   loadRecurringExpenses();
 });
