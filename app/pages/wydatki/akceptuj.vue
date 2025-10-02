@@ -68,10 +68,21 @@
               </div>
               <div class="text-right">
                 <div class="text-2xl font-bold">
-                  {{ formatCurrency(suggestion.amount_gross, suggestion.currency_code || 'PLN') }}
+                  {{
+                    formatCurrency(
+                      suggestion.amount_gross,
+                      suggestion.currency_code || 'PLN'
+                    )
+                  }}
                 </div>
                 <div class="text-sm text-gray-500">
-                  Netto: {{ formatCurrency(suggestion.amount_net, suggestion.currency_code || 'PLN') }}
+                  Netto:
+                  {{
+                    formatCurrency(
+                      suggestion.amount_net,
+                      suggestion.currency_code || 'PLN'
+                    )
+                  }}
                 </div>
                 <div class="text-xs text-gray-400">
                   VAT {{ suggestion.vat_rate }}%
@@ -134,15 +145,41 @@
 
       <div v-else class="space-y-2">
         <div
-          v-for="recurring in recurringExpenses"
+          v-for="recurring in recurringExpensesWithCategories"
           :key="recurring.id"
           class="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-800 rounded-lg"
         >
           <div class="flex-1">
             <div class="font-medium">{{ recurring.title }}</div>
             <div class="text-sm text-gray-500">
-              {{ formatCurrency(recurring.amount_gross, recurring.currency_code || 'PLN') }} •
+              {{
+                formatCurrency(
+                  recurring.amount_gross,
+                  recurring.currency_code || 'PLN'
+                )
+              }}
+              •
               {{ formatFrequency(recurring.frequency) }}
+            </div>
+            <div
+              v-if="recurring.categories.length > 0"
+              class="flex flex-wrap gap-1 mt-2"
+            >
+              <UBadge
+                v-for="cat in recurring.categories"
+                :key="cat.id"
+                color="neutral"
+                variant="subtle"
+                size="xs"
+              >
+                <div class="flex items-center gap-1">
+                  <div
+                    class="w-2 h-2 rounded-full"
+                    :style="{ backgroundColor: cat.color || '#3b82f6' }"
+                  />
+                  {{ cat.name }}
+                </div>
+              </UBadge>
             </div>
           </div>
           <div class="flex items-center gap-2">
@@ -180,100 +217,112 @@
           </template>
 
           <form class="space-y-4" @submit.prevent="saveRecurring">
-          <UFormField label="Tytuł" name="title" required>
-            <UInput v-model="recurringForm.title" required />
-          </UFormField>
+            <UFormField label="Tytuł" name="title" required>
+              <UInput v-model="recurringForm.title" required />
+            </UFormField>
 
-          <UFormField label="Kontrahent" name="counterparty">
-            <UInput v-model="recurringForm.counterparty" />
-          </UFormField>
+            <UFormField label="Kontrahent" name="counterparty">
+              <UInput v-model="recurringForm.counterparty" />
+            </UFormField>
 
-          <UFormField label="Waluta" name="currency_code">
-            <USelect
-              v-model="recurringForm.currency_code"
-              :items="availableCurrencies"
-            />
-          </UFormField>
-
-          <div class="grid grid-cols-2 gap-4">
-            <UFormField :label="`Kwota netto (${recurringForm.currency_code})`" name="amount_net">
-              <UInput
-                v-model="recurringForm.amount_net"
-                type="number"
-                step="0.01"
+            <UFormField label="Waluta" name="currency_code">
+              <USelect
+                v-model="recurringForm.currency_code"
+                :items="availableCurrencies"
               />
             </UFormField>
 
-            <UFormField :label="`Kwota brutto (${recurringForm.currency_code})`" name="amount_gross">
-              <UInput
-                v-model="recurringForm.amount_gross"
-                type="number"
-                step="0.01"
-              />
-            </UFormField>
-          </div>
-
-          <UFormField label="Stawka VAT" name="vat_rate">
-            <USelect
-              v-model="recurringForm.vat_rate"
-              :items="[
-                { label: '23%', value: 23 },
-                { label: '8%', value: 8 },
-                { label: '5%', value: 5 },
-                { label: '0%', value: 0 },
-              ]"
-            />
-          </UFormField>
-
-          <UFormField label="Częstotliwość" name="frequency">
-            <USelect
-              v-model="recurringForm.frequency"
-              :items="[
-                { label: 'Miesięcznie', value: 'monthly' },
-                { label: 'Kwartalnie', value: 'quarterly' },
-                { label: 'Rocznie', value: 'yearly' },
-              ]"
-            />
-          </UFormField>
-
-          <UFormField label="Dzień miesiąca" name="day_of_month">
-            <UInput
-              v-model="recurringForm.day_of_month"
-              type="number"
-              min="1"
-              max="31"
-            />
-          </UFormField>
-
-          <UFormField label="Kategorie" name="categories">
-            <div class="space-y-2">
-              <div
-                v-for="category in categories"
-                :key="category.id"
-                class="flex items-center gap-2"
+            <div class="grid grid-cols-2 gap-4">
+              <UFormField
+                :label="`Kwota netto (${recurringForm.currency_code})`"
+                name="amount_net"
               >
-                <UCheckbox
-                  :model-value="recurringForm.selectedCategories.some(c => c.id === category.id)"
-                  @update:model-value="(checked) => toggleCategory(category, checked)"
+                <UInput
+                  v-model="recurringForm.amount_net"
+                  type="number"
+                  step="0.01"
                 />
-                <div class="flex items-center gap-2">
-                  <div
-                    class="w-3 h-3 rounded-full"
-                    :style="{ backgroundColor: category.color || '#3b82f6' }"
+              </UFormField>
+
+              <UFormField
+                :label="`Kwota brutto (${recurringForm.currency_code})`"
+                name="amount_gross"
+              >
+                <UInput
+                  v-model="recurringForm.amount_gross"
+                  type="number"
+                  step="0.01"
+                />
+              </UFormField>
+            </div>
+
+            <UFormField label="Stawka VAT" name="vat_rate">
+              <USelect
+                v-model="recurringForm.vat_rate"
+                :items="[
+                  { label: '23%', value: 23 },
+                  { label: '8%', value: 8 },
+                  { label: '5%', value: 5 },
+                  { label: '0%', value: 0 },
+                ]"
+              />
+            </UFormField>
+
+            <UFormField label="Częstotliwość" name="frequency">
+              <USelect
+                v-model="recurringForm.frequency"
+                :items="[
+                  { label: 'Miesięcznie', value: 'monthly' },
+                  { label: 'Kwartalnie', value: 'quarterly' },
+                  { label: 'Rocznie', value: 'yearly' },
+                ]"
+              />
+            </UFormField>
+
+            <UFormField label="Dzień miesiąca" name="day_of_month">
+              <UInput
+                v-model="recurringForm.day_of_month"
+                type="number"
+                min="1"
+                max="31"
+              />
+            </UFormField>
+
+            <UFormField label="Kategorie" name="categories">
+              <div class="space-y-2">
+                <div
+                  v-for="category in categories"
+                  :key="category.id"
+                  class="flex items-center gap-2"
+                >
+                  <UCheckbox
+                    :model-value="
+                      recurringForm.selectedCategories.some(
+                        (c) => c.id === category.id
+                      )
+                    "
+                    @update:model-value="
+                      (checked) => toggleCategory(category, checked)
+                    "
                   />
-                  <span>{{ category.name }}</span>
+                  <div class="flex items-center gap-2">
+                    <div
+                      class="w-3 h-3 rounded-full"
+                      :style="{ backgroundColor: category.color || '#3b82f6' }"
+                    />
+                    <span>{{ category.name }}</span>
+                  </div>
                 </div>
               </div>
-            </div>
-          </UFormField>
+            </UFormField>
 
-          <UFormField label="Wydatek firmowy" name="is_company">
-            <USwitch v-model="recurringForm.is_company" />
-          </UFormField>
+            <UFormField label="Wydatek firmowy" name="is_company">
+              <USwitch v-model="recurringForm.is_company" />
+            </UFormField>
 
-          <UFormField label="Notatka" name="note">
-            <UTextarea v-model="recurringForm.note" rows="2" />
-          </UFormField>
+            <UFormField label="Notatka" name="note">
+              <UTextarea v-model="recurringForm.note" rows="2" />
+            </UFormField>
 
             <div class="flex justify-end gap-2 pt-4">
               <UButton
@@ -300,7 +349,8 @@ definePageMeta({
   middleware: 'auth',
 });
 
-type RecurringExpense = Database['public']['Tables']['recurring_expenses']['Row'];
+type RecurringExpense =
+  Database['public']['Tables']['recurring_expenses']['Row'];
 type Category = Database['public']['Tables']['categories']['Row'];
 
 interface RecurringSuggestion extends RecurringExpense {
@@ -310,10 +360,15 @@ interface RecurringSuggestion extends RecurringExpense {
 const supabase = useSupabaseClient<Database>();
 const user = useSupabaseUser();
 const router = useRouter();
-const { getExchangeRate, formatCurrency: formatCurrencyFn, availableCurrencies } = useCurrency();
+const {
+  getExchangeRate,
+  formatCurrency: formatCurrencyFn,
+  availableCurrencies,
+} = useCurrency();
 
 const suggestions = ref<RecurringSuggestion[]>([]);
 const recurringExpenses = ref<RecurringExpense[]>([]);
+const recurringExpensesWithCategories = ref<RecurringSuggestion[]>([]);
 const loading = ref(true);
 const acceptingIds = ref<string[]>([]);
 const showAddModal = ref(false);
@@ -350,7 +405,8 @@ const loadSuggestions = async () => {
     .from('recurring_expenses')
     .select('*')
     .eq('user_id', user.value.sub)
-    .eq('is_active', true);
+    .eq('is_active', true)
+    .order('day_of_month', { ascending: true });
 
   if (error) {
     console.error('Error loading recurring expenses:', error);
@@ -373,7 +429,9 @@ const loadSuggestions = async () => {
 
       suggestionsList.push({
         ...rec,
-        categories: (cats || []).map((c) => c.categories).filter(Boolean) as Category[],
+        categories: (cats || [])
+          .map((c) => c.categories)
+          .filter(Boolean) as Category[],
       });
     }
   }
@@ -415,12 +473,29 @@ const loadRecurringExpenses = async () => {
     .from('recurring_expenses')
     .select('*')
     .eq('user_id', user.value.sub)
-    .order('created_at', { ascending: false });
+    .order('day_of_month', { ascending: true });
 
   if (error) {
     console.error('Error loading recurring expenses:', error);
   } else {
     recurringExpenses.value = data || [];
+
+    // Load categories for each recurring expense
+    const withCategories: RecurringSuggestion[] = [];
+    for (const rec of data || []) {
+      const { data: cats } = await supabase
+        .from('recurring_expense_categories')
+        .select('category_id, categories(*)')
+        .eq('recurring_expense_id', rec.id);
+
+      withCategories.push({
+        ...rec,
+        categories: (cats || [])
+          .map((c) => c.categories)
+          .filter(Boolean) as Category[],
+      });
+    }
+    recurringExpensesWithCategories.value = withCategories;
   }
 };
 
@@ -437,13 +512,19 @@ const acceptSuggestion = async (suggestion: RecurringSuggestion) => {
     let exchangeRate = 1;
     let amountNetPLN = suggestion.amount_net;
     let amountGrossPLN = suggestion.amount_gross;
-    let vatAmountPLN = (suggestion.amount_gross || 0) - (suggestion.amount_net || 0);
+    let vatAmountPLN =
+      (suggestion.amount_gross || 0) - (suggestion.amount_net || 0);
 
     if (currencyCode !== 'PLN') {
       exchangeRate = await getExchangeRate(currencyCode, today);
-      amountNetPLN = suggestion.amount_net ? Math.round(suggestion.amount_net * exchangeRate * 100) / 100 : null;
-      amountGrossPLN = suggestion.amount_gross ? Math.round(suggestion.amount_gross * exchangeRate * 100) / 100 : null;
-      vatAmountPLN = amountGrossPLN && amountNetPLN ? amountGrossPLN - amountNetPLN : 0;
+      amountNetPLN = suggestion.amount_net
+        ? Math.round(suggestion.amount_net * exchangeRate * 100) / 100
+        : null;
+      amountGrossPLN = suggestion.amount_gross
+        ? Math.round(suggestion.amount_gross * exchangeRate * 100) / 100
+        : null;
+      vatAmountPLN =
+        amountGrossPLN && amountNetPLN ? amountGrossPLN - amountNetPLN : 0;
     }
 
     // Create the expense
@@ -494,7 +575,9 @@ const acceptSuggestion = async (suggestion: RecurringSuggestion) => {
   } catch (error) {
     console.error('Error accepting suggestion:', error);
   } finally {
-    acceptingIds.value = acceptingIds.value.filter((id) => id !== suggestion.id);
+    acceptingIds.value = acceptingIds.value.filter(
+      (id) => id !== suggestion.id
+    );
   }
 };
 
@@ -635,7 +718,9 @@ const saveRecurring = async () => {
         category_id: cat.id,
       }));
 
-      await supabase.from('recurring_expense_categories').insert(categoryInserts);
+      await supabase
+        .from('recurring_expense_categories')
+        .insert(categoryInserts);
     }
 
     showAddModal.value = false;
@@ -694,12 +779,12 @@ const loadCategories = async () => {
 
 const toggleCategory = (category: Category, checked: boolean) => {
   if (checked) {
-    if (!recurringForm.selectedCategories.some(c => c.id === category.id)) {
+    if (!recurringForm.selectedCategories.some((c) => c.id === category.id)) {
       recurringForm.selectedCategories.push(category);
     }
   } else {
     recurringForm.selectedCategories = recurringForm.selectedCategories.filter(
-      c => c.id !== category.id
+      (c) => c.id !== category.id
     );
   }
 };

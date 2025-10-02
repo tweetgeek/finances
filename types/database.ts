@@ -153,13 +153,16 @@ export type Database = {
       expenses: {
         Row: {
           amount_gross: number | null
+          amount_gross_pln: number | null
           amount_net: number | null
+          amount_net_pln: number | null
           counterparty: string | null
           created_at: string
           currency_code: string
           deductible_override: boolean | null
           deductible_ratio: number | null
           due_date: string | null
+          exchange_rate: number | null
           id: string
           invoice_number: string | null
           is_company: boolean
@@ -171,17 +174,21 @@ export type Database = {
           updated_at: string
           user_id: string
           vat_amount: number | null
+          vat_amount_pln: number | null
           vat_rate: number
         }
         Insert: {
           amount_gross?: number | null
+          amount_gross_pln?: number | null
           amount_net?: number | null
+          amount_net_pln?: number | null
           counterparty?: string | null
           created_at?: string
           currency_code?: string
           deductible_override?: boolean | null
           deductible_ratio?: number | null
           due_date?: string | null
+          exchange_rate?: number | null
           id?: string
           invoice_number?: string | null
           is_company?: boolean
@@ -193,17 +200,21 @@ export type Database = {
           updated_at?: string
           user_id: string
           vat_amount?: number | null
+          vat_amount_pln?: number | null
           vat_rate?: number
         }
         Update: {
           amount_gross?: number | null
+          amount_gross_pln?: number | null
           amount_net?: number | null
+          amount_net_pln?: number | null
           counterparty?: string | null
           created_at?: string
           currency_code?: string
           deductible_override?: boolean | null
           deductible_ratio?: number | null
           due_date?: string | null
+          exchange_rate?: number | null
           id?: string
           invoice_number?: string | null
           is_company?: boolean
@@ -215,6 +226,7 @@ export type Database = {
           updated_at?: string
           user_id?: string
           vat_amount?: number | null
+          vat_amount_pln?: number | null
           vat_rate?: number
         }
         Relationships: []
@@ -252,10 +264,13 @@ export type Database = {
       incomes: {
         Row: {
           amount_gross: number | null
+          amount_gross_pln: number | null
           amount_net: number | null
+          amount_net_pln: number | null
           counterparty: string | null
           created_at: string
           currency_code: string
+          exchange_rate: number | null
           id: string
           invoice_number: string | null
           is_company: boolean
@@ -265,14 +280,18 @@ export type Database = {
           updated_at: string
           user_id: string
           vat_amount: number | null
+          vat_amount_pln: number | null
           vat_rate: number
         }
         Insert: {
           amount_gross?: number | null
+          amount_gross_pln?: number | null
           amount_net?: number | null
+          amount_net_pln?: number | null
           counterparty?: string | null
           created_at?: string
           currency_code?: string
+          exchange_rate?: number | null
           id?: string
           invoice_number?: string | null
           is_company?: boolean
@@ -282,14 +301,18 @@ export type Database = {
           updated_at?: string
           user_id: string
           vat_amount?: number | null
+          vat_amount_pln?: number | null
           vat_rate?: number
         }
         Update: {
           amount_gross?: number | null
+          amount_gross_pln?: number | null
           amount_net?: number | null
+          amount_net_pln?: number | null
           counterparty?: string | null
           created_at?: string
           currency_code?: string
+          exchange_rate?: number | null
           id?: string
           invoice_number?: string | null
           is_company?: boolean
@@ -299,6 +322,7 @@ export type Database = {
           updated_at?: string
           user_id?: string
           vat_amount?: number | null
+          vat_amount_pln?: number | null
           vat_rate?: number
         }
         Relationships: []
@@ -336,6 +360,99 @@ export type Database = {
           paid_at?: string | null
           title?: string
           user_id?: string
+        }
+        Relationships: []
+      }
+      recurring_expense_categories: {
+        Row: {
+          category_id: string
+          recurring_expense_id: string
+        }
+        Insert: {
+          category_id: string
+          recurring_expense_id: string
+        }
+        Update: {
+          category_id?: string
+          recurring_expense_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "recurring_expense_categories_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "recurring_expense_categories_recurring_expense_id_fkey"
+            columns: ["recurring_expense_id"]
+            isOneToOne: false
+            referencedRelation: "recurring_expenses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      recurring_expenses: {
+        Row: {
+          amount_gross: number | null
+          amount_net: number | null
+          counterparty: string | null
+          created_at: string
+          currency_code: string | null
+          day_of_month: number | null
+          deductible_override: boolean | null
+          deductible_ratio: number | null
+          frequency: string
+          id: string
+          is_active: boolean
+          is_company: boolean
+          last_generated_date: string | null
+          note: string | null
+          title: string
+          updated_at: string
+          user_id: string
+          vat_rate: number
+        }
+        Insert: {
+          amount_gross?: number | null
+          amount_net?: number | null
+          counterparty?: string | null
+          created_at?: string
+          currency_code?: string | null
+          day_of_month?: number | null
+          deductible_override?: boolean | null
+          deductible_ratio?: number | null
+          frequency?: string
+          id?: string
+          is_active?: boolean
+          is_company?: boolean
+          last_generated_date?: string | null
+          note?: string | null
+          title: string
+          updated_at?: string
+          user_id: string
+          vat_rate?: number
+        }
+        Update: {
+          amount_gross?: number | null
+          amount_net?: number | null
+          counterparty?: string | null
+          created_at?: string
+          currency_code?: string | null
+          day_of_month?: number | null
+          deductible_override?: boolean | null
+          deductible_ratio?: number | null
+          frequency?: string
+          id?: string
+          is_active?: boolean
+          is_company?: boolean
+          last_generated_date?: string | null
+          note?: string | null
+          title?: string
+          updated_at?: string
+          user_id?: string
+          vat_rate?: number
         }
         Relationships: []
       }

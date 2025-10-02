@@ -72,11 +72,6 @@
                 Tytuł
               </th>
               <th
-                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-              >
-                Kontrahent
-              </th>
-              <th
                 class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider"
               >
                 Kwota brutto
@@ -108,19 +103,45 @@
               <td class="px-6 py-4 text-sm">
                 <div class="font-medium">{{ expense.title }}</div>
                 <div
+                  v-if="expense.counterparty"
+                  class="text-gray-500 text-xs mt-0.5"
+                >
+                  {{ expense.counterparty }}
+                </div>
+                <div
                   v-if="expense.invoice_number"
-                  class="text-gray-500 text-xs"
+                  class="text-gray-500 text-xs mt-0.5"
                 >
                   {{ expense.invoice_number }}
                 </div>
-              </td>
-              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                {{ expense.counterparty || '-' }}
+                <div v-if="expense.categories.length > 0" class="flex flex-wrap gap-1 mt-1.5">
+                  <UBadge
+                    v-for="cat in expense.categories"
+                    :key="cat.id"
+                    color="neutral"
+                    variant="subtle"
+                    size="xs"
+                  >
+                    <div class="flex items-center gap-1">
+                      <div
+                        class="w-2 h-2 rounded-full"
+                        :style="{ backgroundColor: cat.color || '#3b82f6' }"
+                      />
+                      {{ cat.name }}
+                    </div>
+                  </UBadge>
+                </div>
               </td>
               <td
                 class="px-6 py-4 whitespace-nowrap text-sm text-right font-medium"
               >
-                {{ formatCurrency(expense.amount_gross) }}
+                <div>{{ formatCurrency(expense.amount_gross, expense.currency_code || 'PLN') }}</div>
+                <div
+                  v-if="expense.currency_code !== 'PLN' && expense.amount_gross_pln"
+                  class="text-xs text-gray-500"
+                >
+                  ≈ {{ formatCurrency(expense.amount_gross_pln, 'PLN') }}
+                </div>
               </td>
               <td class="px-6 py-4 whitespace-nowrap text-sm text-center">
                 <UBadge
@@ -175,11 +196,17 @@ definePageMeta({
 });
 
 type Expense = Database['public']['Tables']['expenses']['Row'];
+type Category = Database['public']['Tables']['categories']['Row'];
+
+interface ExpenseWithCategories extends Expense {
+  categories: Category[];
+}
 
 const supabase = useSupabaseClient<Database>();
 const user = useSupabaseUser();
 
 const expenses = ref<Expense[]>([]);
+const expensesWithCategories = ref<ExpenseWithCategories[]>([]);
 const loading = ref(true);
 
 const filters = reactive({
@@ -203,12 +230,27 @@ const loadExpenses = async () => {
     console.error('Error loading expenses:', error);
   } else {
     expenses.value = data || [];
+
+    // Load categories for each expense
+    const withCategories: ExpenseWithCategories[] = [];
+    for (const expense of data || []) {
+      const { data: cats } = await supabase
+        .from('expense_categories')
+        .select('category_id, categories(*)')
+        .eq('expense_id', expense.id);
+
+      withCategories.push({
+        ...expense,
+        categories: (cats || []).map((c) => c.categories).filter(Boolean) as Category[],
+      });
+    }
+    expensesWithCategories.value = withCategories;
   }
   loading.value = false;
 };
 
 const filteredExpenses = computed(() => {
-  return expenses.value.filter((expense) => {
+  return expensesWithCategories.value.filter((expense) => {
     if (filters.dateFrom && expense.issue_date < filters.dateFrom) return false;
     if (filters.dateTo && expense.issue_date > filters.dateTo) return false;
     if (filters.paymentStatus === 'paid' && !expense.is_paid) return false;
@@ -221,7 +263,7 @@ const filteredExpenses = computed(() => {
 
 const totalAmount = computed(() => {
   return filteredExpenses.value.reduce(
-    (sum, expense) => sum + (expense.amount_gross || 0),
+    (sum, expense) => sum + (expense.amount_gross_pln || expense.amount_gross || 0),
     0
   );
 });
@@ -230,12 +272,10 @@ const formatDate = (date: string) => {
   return new Date(date).toLocaleDateString('pl-PL');
 };
 
-const formatCurrency = (amount: number | null) => {
-  if (amount === null) return '-';
-  return new Intl.NumberFormat('pl-PL', {
-    style: 'currency',
-    currency: 'PLN',
-  }).format(amount);
+const { formatCurrency: formatCurrencyFn } = useCurrency();
+
+const formatCurrency = (amount: number | null, currencyCode: string = 'PLN') => {
+  return formatCurrencyFn(amount, currencyCode);
 };
 
 const deleteExpense = async (expense: Expense) => {
