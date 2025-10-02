@@ -3,11 +3,7 @@
     <div class="flex justify-between items-center mb-8">
       <h1 class="text-3xl font-bold">Podatki i zobowiązania</h1>
       <div class="flex gap-2">
-        <UButton
-          color="neutral"
-          variant="outline"
-          to="/ustawienia"
-        >
+        <UButton color="neutral" variant="outline" to="/ustawienia">
           Ustawienia podatkowe
         </UButton>
       </div>
@@ -44,21 +40,27 @@
     <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
       <UCard v-if="userSettings?.vat_active">
         <div class="text-sm text-gray-500 mb-1">VAT do zapłaty</div>
-        <div class="text-2xl font-bold">{{ formatCurrency(calculatedTaxes.vat) }}</div>
+        <div class="text-2xl font-bold">
+          {{ formatCurrency(calculatedTaxes.vat) }}
+        </div>
         <div class="text-xs text-gray-500 mt-1">
           Termin: {{ getVATDeadline() }}
         </div>
       </UCard>
       <UCard>
         <div class="text-sm text-gray-500 mb-1">ZUS</div>
-        <div class="text-2xl font-bold">{{ formatCurrency(calculatedTaxes.zus) }}</div>
+        <div class="text-2xl font-bold">
+          {{ formatCurrency(calculatedTaxes.zus) }}
+        </div>
         <div class="text-xs text-gray-500 mt-1">
           Termin: {{ getZUSDeadline() }}
         </div>
       </UCard>
       <UCard>
         <div class="text-sm text-gray-500 mb-1">Podatek dochodowy</div>
-        <div class="text-2xl font-bold">{{ formatCurrency(calculatedTaxes.income_tax) }}</div>
+        <div class="text-2xl font-bold">
+          {{ formatCurrency(calculatedTaxes.income_tax) }}
+        </div>
         <div class="text-xs text-gray-500 mt-1">
           Termin: {{ getIncomeTaxDeadline() }}
         </div>
@@ -68,9 +70,17 @@
       </UCard>
       <UCard>
         <div class="text-sm text-gray-500 mb-1">Suma zobowiązań</div>
-        <div class="text-2xl font-bold text-red-500">{{ formatCurrency(calculatedTaxes.total) }}</div>
+        <div class="text-2xl font-bold text-red-500">
+          {{ formatCurrency(calculatedTaxes.total) }}
+        </div>
         <div class="text-xs text-gray-500 mt-1">
-          Za {{ formatPeriod(selectedYear, selectedMonth || currentDate.getMonth() + 1) }}
+          Za
+          {{
+            formatPeriod(
+              selectedYear,
+              selectedMonth || currentDate.getMonth() + 1
+            )
+          }}
         </div>
       </UCard>
     </div>
@@ -81,7 +91,7 @@
         <h3 class="text-lg font-semibold">Szczegóły obliczeń</h3>
       </template>
 
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
         <div v-if="userSettings?.vat_active">
           <h4 class="font-medium mb-2">VAT</h4>
           <div class="space-y-1 text-sm">
@@ -101,13 +111,41 @@
         </div>
 
         <div>
+          <h4 class="font-medium mb-2">ZUS</h4>
+          <div class="space-y-1 text-sm">
+            <div class="flex justify-between" v-if="zusDetails.social_base > 0">
+              <span class="text-gray-500">Składki społeczne:</span>
+              <span>{{ formatCurrency(zusDetails.social_total) }}</span>
+            </div>
+            <div class="flex justify-between">
+              <span class="text-gray-500">Składka zdrowotna:</span>
+              <span>{{ formatCurrency(zusDetails.health) }}</span>
+            </div>
+            <div
+              class="flex justify-between text-xs text-gray-400"
+              v-if="userSettings?.zus_health_calculation === 'ryczalt'"
+            >
+              <span>Przychód roczny:</span>
+              <span>{{ formatCurrency(zusDetails.yearly_income) }}</span>
+            </div>
+            <div class="flex justify-between font-medium pt-1 border-t">
+              <span>Do zapłaty:</span>
+              <span>{{ formatCurrency(calculatedTaxes.zus) }}</span>
+            </div>
+          </div>
+        </div>
+
+        <div>
           <h4 class="font-medium mb-2">Podatek dochodowy</h4>
           <div class="space-y-1 text-sm">
             <div class="flex justify-between">
               <span class="text-gray-500">Przychód:</span>
               <span>{{ formatCurrency(calculationDetails.income) }}</span>
             </div>
-            <div class="flex justify-between" v-if="!userSettings?.income_tax_scheme?.startsWith('ryczalt')">
+            <div
+              class="flex justify-between"
+              v-if="!userSettings?.income_tax_scheme?.startsWith('ryczalt')"
+            >
               <span class="text-gray-500">Koszty:</span>
               <span>{{ formatCurrency(calculationDetails.costs) }}</span>
             </div>
@@ -117,142 +155,19 @@
             </div>
             <div class="flex justify-between">
               <span class="text-gray-500">Stawka:</span>
-              <span>{{ extractTaxRate(userSettings?.income_tax_scheme || 'ryczalt_12') }}%</span>
+              <span
+                >{{
+                  extractTaxRate(
+                    userSettings?.income_tax_scheme || 'ryczalt_12'
+                  )
+                }}%</span
+              >
             </div>
             <div class="flex justify-between font-medium pt-1 border-t">
               <span>Do zapłaty:</span>
               <span>{{ formatCurrency(calculatedTaxes.income_tax) }}</span>
             </div>
           </div>
-        </div>
-      </div>
-    </UCard>
-
-    <UCard v-if="loading" class="text-center"> Ładowanie... </UCard>
-
-    <UCard v-else-if="filteredTaxes.length === 0">
-      <div class="text-center text-gray-500">
-        Brak zobowiązań w tym okresie. Dodaj pierwsze zobowiązanie.
-      </div>
-    </UCard>
-
-    <UCard v-else>
-      <div class="overflow-x-auto">
-        <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-          <thead class="bg-gray-50 dark:bg-gray-800">
-            <tr>
-              <th
-                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-              >
-                Typ
-              </th>
-              <th
-                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-              >
-                Okres
-              </th>
-              <th
-                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-              >
-                Termin płatności
-              </th>
-              <th
-                class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider"
-              >
-                Kwota
-              </th>
-              <th
-                class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider"
-              >
-                Status
-              </th>
-              <th
-                class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider"
-              >
-                Akcje
-              </th>
-            </tr>
-          </thead>
-          <tbody
-            class="bg-white dark:bg-gray-900 divide-y divide-gray-200 dark:divide-gray-700"
-          >
-            <tr v-if="userSettings?.vat_active && calculatedTaxes.vat > 0">
-              <td class="px-6 py-4 whitespace-nowrap text-sm">
-                <UBadge color="primary" variant="subtle">VAT</UBadge>
-              </td>
-              <td class="px-6 py-4 whitespace-nowrap text-sm">
-                {{ formatPeriod(selectedYear, selectedMonth || currentDate.getMonth() + 1) }}
-              </td>
-              <td class="px-6 py-4 whitespace-nowrap text-sm">
-                {{ getVATDeadline() }}
-              </td>
-              <td class="px-6 py-4 whitespace-nowrap text-sm text-right font-medium">
-                {{ formatCurrency(calculatedTaxes.vat) }}
-              </td>
-              <td class="px-6 py-4 whitespace-nowrap text-sm text-center">
-                <UBadge color="warning" variant="subtle">
-                  Do zapłaty
-                </UBadge>
-              </td>
-              <td class="px-6 py-4 whitespace-nowrap text-right text-sm">
-                -
-              </td>
-            </tr>
-            <tr v-if="calculatedTaxes.zus > 0">
-              <td class="px-6 py-4 whitespace-nowrap text-sm">
-                <UBadge color="info" variant="subtle">ZUS</UBadge>
-              </td>
-              <td class="px-6 py-4 whitespace-nowrap text-sm">
-                {{ formatPeriod(selectedYear, selectedMonth || currentDate.getMonth() + 1) }}
-              </td>
-              <td class="px-6 py-4 whitespace-nowrap text-sm">
-                {{ getZUSDeadline() }}
-              </td>
-              <td class="px-6 py-4 whitespace-nowrap text-sm text-right font-medium">
-                {{ formatCurrency(calculatedTaxes.zus) }}
-              </td>
-              <td class="px-6 py-4 whitespace-nowrap text-sm text-center">
-                <UBadge color="warning" variant="subtle">
-                  Do zapłaty
-                </UBadge>
-              </td>
-              <td class="px-6 py-4 whitespace-nowrap text-right text-sm">
-                -
-              </td>
-            </tr>
-            <tr v-if="calculatedTaxes.income_tax > 0">
-              <td class="px-6 py-4 whitespace-nowrap text-sm">
-                <UBadge color="warning" variant="subtle">Podatek dochodowy</UBadge>
-              </td>
-              <td class="px-6 py-4 whitespace-nowrap text-sm">
-                {{ formatPeriod(selectedYear, selectedMonth || currentDate.getMonth() + 1) }}
-              </td>
-              <td class="px-6 py-4 whitespace-nowrap text-sm">
-                {{ getIncomeTaxDeadline() }}
-              </td>
-              <td class="px-6 py-4 whitespace-nowrap text-sm text-right font-medium">
-                {{ formatCurrency(calculatedTaxes.income_tax) }}
-              </td>
-              <td class="px-6 py-4 whitespace-nowrap text-sm text-center">
-                <UBadge color="warning" variant="subtle">
-                  Do zapłaty
-                </UBadge>
-              </td>
-              <td class="px-6 py-4 whitespace-nowrap text-right text-sm">
-                -
-              </td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-
-      <!-- Summary -->
-      <div class="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
-        <div class="flex justify-between items-center text-sm">
-          <span class="text-gray-500">Suma zobowiązań za okres</span>
-          <span class="font-bold text-lg text-red-500">
-            {{ formatCurrency(calculatedTaxes.total) }}
-          </span>
         </div>
       </div>
     </UCard>
@@ -301,7 +216,11 @@ const months = [
 
 const availableYears = computed(() => {
   const years = [];
-  for (let i = currentDate.getFullYear() - 2; i <= currentDate.getFullYear() + 1; i++) {
+  for (
+    let i = currentDate.getFullYear() - 2;
+    i <= currentDate.getFullYear() + 1;
+    i++
+  ) {
     years.push({ label: i.toString(), value: i });
   }
   return years;
@@ -309,11 +228,83 @@ const availableYears = computed(() => {
 
 const incomes = ref<Income[]>([]);
 const expenses = ref<Expense[]>([]);
+const yearlyIncomes = ref<Income[]>([]);
 
 const extractTaxRate = (taxScheme: string): number => {
   const match = taxScheme.match(/(\d+(?:_\d+)?)/);
   if (!match) return 12;
   return parseFloat(match[1].replace('_', '.'));
+};
+
+const calculateYearlyIncome = (): number => {
+  // Suma przychodów za cały rok do wybranego miesiąca
+  return yearlyIncomes.value.reduce(
+    (sum, income) => sum + (income.amount_net || 0),
+    0
+  );
+};
+
+const zusDetails = computed(() => {
+  const result = {
+    social_base: 0,
+    social_pension: 0,
+    social_disability: 0,
+    social_sickness: 0,
+    social_accident: 0,
+    social_total: 0,
+    health: 0,
+    health_base: 0,
+    yearly_income: 0,
+  };
+
+  if (!userSettings.value) return result;
+
+  // Składki społeczne (stałe miesięcznie)
+  const socialBase = userSettings.value.zus_social_base || 0;
+  result.social_base = socialBase;
+
+  if (socialBase > 0) {
+    result.social_pension = socialBase * 0.1952; // emerytalna
+    result.social_disability = socialBase * 0.08; // rentowa
+    result.social_sickness = socialBase * 0.0245; // chorobowa
+    result.social_accident = socialBase * 0.0167; // wypadkowa
+    result.social_total =
+      result.social_pension +
+      result.social_disability +
+      result.social_sickness +
+      result.social_accident;
+  }
+
+  // Składka zdrowotna
+  const yearlyIncome = calculateYearlyIncome();
+  result.yearly_income = yearlyIncome;
+
+  if (userSettings.value.zus_health_calculation === 'fixed') {
+    result.health = userSettings.value.zus_health_fixed || 0;
+  } else if (userSettings.value.zus_health_calculation === 'ryczalt') {
+    const averageWage = 8549.18; // 2025
+
+    if (yearlyIncome <= 60000) {
+      result.health_base = averageWage * 0.6;
+      result.health = result.health_base * 0.09;
+    } else if (yearlyIncome <= 300000) {
+      result.health_base = averageWage * 1.0;
+      result.health = result.health_base * 0.09;
+    } else {
+      result.health_base = averageWage * 1.8;
+      result.health = result.health_base * 0.09;
+    }
+  }
+
+  return result;
+});
+
+const calculateZUS = (): number => {
+  return (
+    Math.round(
+      (zusDetails.value.social_total + zusDetails.value.health) * 100
+    ) / 100
+  );
 };
 
 const calculationDetails = computed(() => {
@@ -342,7 +333,8 @@ const calculationDetails = computed(() => {
   });
 
   // Calculate tax base
-  const isRyczalt = userSettings.value?.income_tax_scheme?.startsWith('ryczalt') ?? true;
+  const isRyczalt =
+    userSettings.value?.income_tax_scheme?.startsWith('ryczalt') ?? true;
   if (isRyczalt) {
     result.tax_base = result.income;
   } else {
@@ -364,15 +356,20 @@ const calculatedTaxes = computed(() => {
 
   // VAT calculation
   if (userSettings.value.vat_active) {
-    result.vat = Math.max(0, calculationDetails.value.vat_income - calculationDetails.value.vat_expense);
+    result.vat = Math.max(
+      0,
+      calculationDetails.value.vat_income - calculationDetails.value.vat_expense
+    );
   }
 
-  // ZUS - hardcoded for now, TODO: make configurable
-  result.zus = 0;
+  // ZUS calculation
+  result.zus = calculateZUS();
 
   // Income tax
   const taxBase = calculationDetails.value.tax_base;
-  const taxRate = extractTaxRate(userSettings.value.income_tax_scheme || 'ryczalt_12');
+  const taxRate = extractTaxRate(
+    userSettings.value.income_tax_scheme || 'ryczalt_12'
+  );
   result.income_tax = Math.max(0, (taxBase * taxRate) / 100);
 
   // Total
@@ -399,18 +396,37 @@ const loadSettings = async () => {
     console.log('Settings loaded:', data);
     userSettings.value = data;
   } else {
-    console.log('No settings found, using defaults');
-    // Default settings
-    userSettings.value = {
-      id: '',
+    console.log('No settings found, creating defaults');
+    // Create default settings
+    const defaultSettings = {
       user_id: userId,
       income_tax_scheme: 'ryczalt_12',
       vat_active: true,
       default_vat_rate: 23,
       company_name: null,
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
+      zus_social_base: null,
+      zus_health_calculation: 'ryczalt',
+      zus_health_fixed: null,
     };
+
+    const { data: created, error: createError } = await supabase
+      .from('company_settings')
+      .insert(defaultSettings)
+      .select()
+      .single();
+
+    if (createError) {
+      console.error('Error creating settings:', createError);
+      // Use defaults anyway
+      userSettings.value = {
+        ...defaultSettings,
+        id: '',
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      } as any;
+    } else {
+      userSettings.value = created;
+    }
   }
 };
 
@@ -431,7 +447,7 @@ const loadData = async () => {
 
   console.log('Loading data for period:', startDate, 'to', endDate);
 
-  // Load incomes
+  // Load incomes for the month
   const { data: incomesData, error: incomesError } = await supabase
     .from('incomes')
     .select('*')
@@ -444,6 +460,22 @@ const loadData = async () => {
   } else {
     console.log('Loaded incomes:', incomesData?.length);
     incomes.value = incomesData || [];
+  }
+
+  // Load yearly incomes (from start of year to selected month)
+  const yearStartDate = `${year}-01-01`;
+  const { data: yearlyIncomesData, error: yearlyIncomesError } = await supabase
+    .from('incomes')
+    .select('*')
+    .eq('user_id', userId)
+    .gte('issue_date', yearStartDate)
+    .lt('issue_date', endDate);
+
+  if (yearlyIncomesError) {
+    console.error('Error loading yearly incomes:', yearlyIncomesError);
+  } else {
+    console.log('Loaded yearly incomes:', yearlyIncomesData?.length);
+    yearlyIncomes.value = yearlyIncomesData || [];
   }
 
   // Load expenses
@@ -464,10 +496,6 @@ const loadData = async () => {
   loading.value = false;
 };
 
-const formatDate = (date: string) => {
-  return new Date(date).toLocaleDateString('pl-PL');
-};
-
 const formatPeriod = (year: number, month: number) => {
   const monthLabel = months.find((m) => m.value === month)?.label || month;
   return `${monthLabel} ${year}`;
@@ -486,7 +514,10 @@ const getVATDeadline = () => {
   const year = selectedYear.value;
   const nextMonth = month === 12 ? 1 : month + 1;
   const nextYear = month === 12 ? year + 1 : year;
-  return `${nextMonth.toString().padStart(2, '0')}.${nextYear}`.replace(/^(\d+)\.(\d+)$/, '25.$1.$2');
+  return `${nextMonth.toString().padStart(2, '0')}.${nextYear}`.replace(
+    /^(\d+)\.(\d+)$/,
+    '25.$1.$2'
+  );
 };
 
 const getZUSDeadline = () => {
@@ -520,10 +551,6 @@ const getTaxTypeLabel = () => {
   }
   return '';
 };
-
-const filteredTaxes = computed(() => {
-  return [];
-});
 
 watch([selectedYear, selectedMonth], () => {
   loadData();

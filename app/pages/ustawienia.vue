@@ -46,6 +46,55 @@
         </div>
       </UCard>
 
+      <!-- ZUS Settings -->
+      <UCard>
+        <template #header>
+          <h2 class="text-xl font-semibold">Ustawienia ZUS</h2>
+        </template>
+
+        <div class="space-y-4">
+          <UFormField label="Podstawa składek społecznych (miesięcznie)" help="Minimalna podstawa ZUS 2025: 5 203,80 zł">
+            <UInput
+              v-model="settings.zus_social_base"
+              type="number"
+              step="0.01"
+              placeholder="5203.80"
+              @blur="updateSettings"
+            />
+          </UFormField>
+
+          <UFormField label="Sposób liczenia składki zdrowotnej">
+            <USelect
+              v-model="settings.zus_health_calculation"
+              :items="zusHealthCalculationOptions"
+              @update:model-value="updateSettings"
+            />
+          </UFormField>
+
+          <UFormField
+            v-if="settings.zus_health_calculation === 'fixed'"
+            label="Składka zdrowotna (stała kwota miesięcznie)"
+          >
+            <UInput
+              v-model="settings.zus_health_fixed"
+              type="number"
+              step="0.01"
+              placeholder="461.66"
+              @blur="updateSettings"
+            />
+          </UFormField>
+
+          <div v-if="settings.zus_health_calculation === 'ryczalt'" class="text-sm text-gray-500">
+            <p class="mb-2">Składka zdrowotna będzie liczona automatycznie na podstawie przychodów:</p>
+            <ul class="list-disc list-inside space-y-1">
+              <li>do 60 000 zł rocznie: 461,66 zł/mc</li>
+              <li>60 000 - 300 000 zł rocznie: 769,43 zł/mc</li>
+              <li>powyżej 300 000 zł rocznie: 1 384,97 zł/mc</li>
+            </ul>
+          </div>
+        </div>
+      </UCard>
+
       <!-- Business Info -->
       <UCard>
         <template #header>
@@ -89,6 +138,9 @@ const settings = reactive({
   tax_type: 'ryczalt_12' as string,
   tax_rate: 12,
   zus_amount: 0,
+  zus_social_base: null as number | null,
+  zus_health_calculation: 'ryczalt' as string,
+  zus_health_fixed: null as number | null,
   vat_enabled: true,
   vat_rate: 23,
   company_name: '',
@@ -114,6 +166,11 @@ const vatRates = [
   { label: '8%', value: 8 },
   { label: '5%', value: 5 },
   { label: '0%', value: 0 },
+];
+
+const zusHealthCalculationOptions = [
+  { label: 'Ryczałt (zależna od przychodów)', value: 'ryczalt' },
+  { label: 'Stała kwota', value: 'fixed' },
 ];
 
 const extractTaxRate = (taxType: string): number => {
@@ -146,6 +203,9 @@ const loadSettings = async () => {
       tax_type: data.income_tax_scheme || 'ryczalt_12',
       tax_rate: extractTaxRate(data.income_tax_scheme || 'ryczalt_12'),
       zus_amount: 0,
+      zus_social_base: data.zus_social_base,
+      zus_health_calculation: data.zus_health_calculation || 'ryczalt',
+      zus_health_fixed: data.zus_health_fixed,
       vat_enabled: data.vat_active ?? true,
       vat_rate: data.default_vat_rate || 23,
       company_name: data.company_name || '',
@@ -173,6 +233,9 @@ const updateSettings = async () => {
       vat_active: settings.vat_enabled,
       default_vat_rate: settings.vat_rate,
       company_name: settings.company_name || null,
+      zus_social_base: settings.zus_social_base || null,
+      zus_health_calculation: settings.zus_health_calculation,
+      zus_health_fixed: settings.zus_health_fixed || null,
     };
 
     console.log('Saving settings:', settingsData);

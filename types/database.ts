@@ -90,6 +90,9 @@ export type Database = {
           updated_at: string
           user_id: string
           vat_active: boolean
+          zus_health_calculation: string
+          zus_health_fixed: number | null
+          zus_social_base: number | null
         }
         Insert: {
           company_name?: string | null
@@ -100,6 +103,9 @@ export type Database = {
           updated_at?: string
           user_id: string
           vat_active?: boolean
+          zus_health_calculation?: string
+          zus_health_fixed?: number | null
+          zus_social_base?: number | null
         }
         Update: {
           company_name?: string | null
@@ -110,6 +116,9 @@ export type Database = {
           updated_at?: string
           user_id?: string
           vat_active?: boolean
+          zus_health_calculation?: string
+          zus_health_fixed?: number | null
+          zus_social_base?: number | null
         }
         Relationships: []
       }
@@ -403,6 +412,7 @@ export type Database = {
           day_of_month: number | null
           deductible_override: boolean | null
           deductible_ratio: number | null
+          end_date: string | null
           frequency: string
           id: string
           is_active: boolean
@@ -423,6 +433,7 @@ export type Database = {
           day_of_month?: number | null
           deductible_override?: boolean | null
           deductible_ratio?: number | null
+          end_date?: string | null
           frequency?: string
           id?: string
           is_active?: boolean
@@ -443,6 +454,7 @@ export type Database = {
           day_of_month?: number | null
           deductible_override?: boolean | null
           deductible_ratio?: number | null
+          end_date?: string | null
           frequency?: string
           id?: string
           is_active?: boolean

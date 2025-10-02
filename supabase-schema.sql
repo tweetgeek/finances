@@ -10,6 +10,9 @@ create table if not exists public.company_settings (
   vat_active boolean not null default true,
   income_tax_scheme text not null default 'ryczalt_12',
   default_vat_rate numeric(5,2) not null default 23.00,
+  zus_social_base numeric(12,2),
+  zus_health_calculation text not null default 'ryczalt' check (zus_health_calculation in ('ryczalt', 'fixed')),
+  zus_health_fixed numeric(12,2),
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
@@ -294,6 +297,7 @@ create table if not exists public.recurring_expenses (
   day_of_month int check (day_of_month between 1 and 31),
   is_active boolean not null default true,
   last_generated_date date,
+  end_date date,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
