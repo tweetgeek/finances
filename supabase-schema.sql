@@ -341,4 +341,76 @@ insert into public.categories (user_id, name, color, is_deductible_in_company, d
   ('2b05900f-22f2-4429-84b4-3b94b521490c', 'Samochód', '#ef4444', true, 0.500),
   ('2b05900f-22f2-4429-84b4-3b94b521490c', 'Kredyt', '#f59e0b', false, 0.000),
   ('2b05900f-22f2-4429-84b4-3b94b521490c', 'Zdrowie', '#10b981', false, 0.000);
+
+
+  -- Recurring Expenses from CSV
+-- Note: Replace 'YOUR_USER_ID' with actual user UUID
+
+-- 1Password
+INSERT INTO public.recurring_expenses (user_id, title, counterparty, amount_gross, vat_rate, is_company, frequency, day_of_month, is_active, note)
+VALUES ('2b05900f-22f2-4429-84b4-3b94b521490c', '1Password', '1Password', 4.91, 0, true, 'monthly', 5, true, 'currency: USD, profile: Firmowe, category: Bezpieczeństwo');
+
+-- Xbox Game Pass
+INSERT INTO public.recurring_expenses (user_id, title, counterparty, amount_gross, vat_rate, is_company, frequency, day_of_month, is_active, note)
+VALUES ('2b05900f-22f2-4429-84b4-3b94b521490c', 'Xbox Game Pass', 'Xbox Game Pass', 39.99, 0, false, 'monthly', 2, true, 'currency: PLN, profile: Prywatne, category: Gry');
+
+-- ChatGPT Plus
+INSERT INTO public.recurring_expenses (user_id, title, counterparty, amount_gross, vat_rate, is_company, frequency, day_of_month, is_active, note)
+VALUES ('2b05900f-22f2-4429-84b4-3b94b521490c', 'ChatGPT Plus', 'ChatGPT Plus', 20.00, 0, false, 'monthly', 27, true, 'currency: USD, profile: Prywatne, category: AI service');
+
+-- Dropbox
+INSERT INTO public.recurring_expenses (user_id, title, counterparty, amount_gross, vat_rate, is_company, frequency, day_of_month, is_active, note)
+VALUES ('2b05900f-22f2-4429-84b4-3b94b521490c', 'Dropbox', 'Dropbox', 11.99, 0, false, 'monthly', 22, true, 'currency: EUR, profile: Prywatne, category: Przechowywanie w chmurze');
+
+-- Netflix Rodzice
+INSERT INTO public.recurring_expenses (user_id, title, counterparty, amount_gross, vat_rate, is_company, frequency, day_of_month, is_active, note)
+VALUES ('2b05900f-22f2-4429-84b4-3b94b521490c', 'Netflix Rodzice', 'Netflix', 33.00, 0, false, 'monthly', 16, true, 'currency: PLN, profile: Prywatne, category: Video & TV');
+
+-- Windsurf
+INSERT INTO public.recurring_expenses (user_id, title, counterparty, amount_gross, vat_rate, is_company, frequency, day_of_month, is_active, note)
+VALUES ('2b05900f-22f2-4429-84b4-3b94b521490c', 'Windsurf', 'Windsurf', 15.00, 0, false, 'monthly', 17, true, 'currency: USD, profile: Prywatne, category: Rozwój');
+
+-- YouTube Premium
+INSERT INTO public.recurring_expenses (user_id, title, counterparty, amount_gross, vat_rate, is_company, frequency, day_of_month, is_active, note)
+VALUES ('2b05900f-22f2-4429-84b4-3b94b521490c', 'YouTube Premium', 'YouTube Premium', 38.99, 0, false, 'monthly', 13, true, 'currency: PLN, profile: Prywatne, category: Rozrywka');
+
+-- Apple iCloud
+INSERT INTO public.recurring_expenses (user_id, title, counterparty, amount_gross, vat_rate, is_company, frequency, day_of_month, is_active, note)
+VALUES ('2b05900f-22f2-4429-84b4-3b94b521490c', 'Apple iCloud', 'Apple iCloud', 49.99, 0, false, 'monthly', 8, true, 'currency: PLN, profile: Prywatne, category: Przechowywanie w chmurze');
+
+-- Disney Plus
+INSERT INTO public.recurring_expenses (user_id, title, counterparty, amount_gross, vat_rate, is_company, frequency, day_of_month, is_active, note)
+VALUES ('2b05900f-22f2-4429-84b4-3b94b521490c', 'Disney Plus', 'Disney Plus', 29.99, 0, false, 'monthly', 28, true, 'currency: PLN, profile: Prywatne, category: Video & TV');
+
+-- Amazon Prime
+INSERT INTO public.recurring_expenses (user_id, title, counterparty, amount_gross, vat_rate, is_company, frequency, day_of_month, is_active, note)
+VALUES ('2b05900f-22f2-4429-84b4-3b94b521490c', 'Amazon Prime', 'Amazon Prime', 10.99, 0, false, 'yearly', 16, true, 'currency: PLN, profile: Prywatne, category: Zakupy');
+
+-- Spotify
+INSERT INTO public.recurring_expenses (user_id, title, counterparty, amount_gross, vat_rate, is_company, frequency, day_of_month, is_active, note)
+VALUES ('2b05900f-22f2-4429-84b4-3b94b521490c', 'Spotify', 'Spotify', 37.99, 0, false, 'monthly', 22, true, 'currency: PLN, profile: Prywatne, category: Muzyka');
+
+-- HBO Max
+INSERT INTO public.recurring_expenses (user_id, title, counterparty, amount_gross, vat_rate, is_company, frequency, day_of_month, is_active, note)
+VALUES ('2b05900f-22f2-4429-84b4-3b94b521490c', 'HBO Max', 'HBO Max', 19.99, 0, false, 'monthly', 18, true, 'currency: PLN, profile: Prywatne, category: Video & TV');
+
+-- Netflix
+INSERT INTO public.recurring_expenses (user_id, title, counterparty, amount_gross, vat_rate, is_company, frequency, day_of_month, is_active, note)
+VALUES ('2b05900f-22f2-4429-84b4-3b94b521490c', 'Netflix', 'Netflix', 49.00, 0, false, 'monthly', 17, true, 'currency: PLN, profile: Prywatne, category: Video & TV');
+
+-- TVN Player
+INSERT INTO public.recurring_expenses (user_id, title, counterparty, amount_gross, vat_rate, is_company, frequency, day_of_month, is_active, note)
+VALUES ('2b05900f-22f2-4429-84b4-3b94b521490c', 'TVN Player', 'TVN Player', 20.00, 0, false, 'monthly', 10, true, 'currency: PLN, profile: Prywatne');
+
+-- AliorBank Monitor
+INSERT INTO public.recurring_expenses (user_id, title, counterparty, amount_gross, vat_rate, is_company, frequency, day_of_month, is_active, note)
+VALUES ('2b05900f-22f2-4429-84b4-3b94b521490c', 'AliorBank Monitor', 'AliorBank', 342.91, 0, false, 'monthly', 16, true, 'currency: PLN, category: Kredyty, endDate: 2025-12-16');
+
+-- AliorBank Odkurzacz
+INSERT INTO public.recurring_expenses (user_id, title, counterparty, amount_gross, vat_rate, is_company, frequency, day_of_month, is_active, note)
+VALUES ('2b05900f-22f2-4429-84b4-3b94b521490c', 'AliorBank Odkurzacz', 'AliorBank', 471.86, 0, false, 'monthly', 7, true, 'currency: PLN, category: Kredyty, endDate: 2025-11-07');
+
+-- Apple Developer
+INSERT INTO public.recurring_expenses (user_id, title, counterparty, amount_gross, vat_rate, is_company, frequency, day_of_month, is_active, note)
+VALUES ('2b05900f-22f2-4429-84b4-3b94b521490c', 'Apple Developer', 'Apple', 99.00, 0, false, 'yearly', 5, true, 'currency: USD, profile: Prywatne, category: Przechowywanie w chmurze');
 */
