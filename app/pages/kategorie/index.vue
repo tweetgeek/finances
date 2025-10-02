@@ -49,7 +49,7 @@
       :title="editingCategory ? 'Edytuj kategorię' : 'Dodaj kategorię'"
     >
       <template #content>
-        <form @submit.prevent="handleSubmit" class="space-y-4 p-4">
+        <form class="space-y-4 p-4" @submit.prevent="handleSubmit">
           <UFormField label="Nazwa" name="name" required>
             <UInput
               v-model="form.name"

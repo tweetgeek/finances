@@ -71,7 +71,6 @@ export default defineEventHandler(async (event) => {
 
     // Generate unique file path
     const timestamp = Date.now();
-    const ext = body.filename.split('.').pop() || 'bin';
     const filePath = `${ownerId}/${timestamp}-${body.filename}`;
 
     // Upload to Supabase Storage
@@ -117,10 +116,10 @@ export default defineEventHandler(async (event) => {
       success: true,
       attachment,
     };
-  } catch (error: any) {
+  } catch (error) {
     throw createError({
       statusCode: 400,
-      statusMessage: error.message || 'Error creating attachment',
+      statusMessage: (error as Error).message || 'Error creating attachment',
     });
   }
 });

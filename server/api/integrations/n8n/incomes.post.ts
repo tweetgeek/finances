@@ -100,10 +100,10 @@ export default defineEventHandler(async (event) => {
       success: true,
       income,
     };
-  } catch (error: any) {
+  } catch (error) {
     throw createError({
       statusCode: 400,
-      statusMessage: error.message || 'Error creating income',
+      statusMessage: (error as Error).message || 'Error creating income',
     });
   }
 });

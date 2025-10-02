@@ -9,7 +9,7 @@
         </h2>
       </template>
 
-      <form @submit.prevent="handleLogin" class="space-y-6">
+      <form class="space-y-6" @submit.prevent="handleLogin">
         <UFormField label="Email" name="email" required>
           <UInput
             v-model="email"
@@ -37,7 +37,7 @@
           :title="error"
           :close-button="{
             icon: 'i-heroicons-x-mark-20-solid',
-            color: 'red',
+            color: 'error',
             variant: 'link',
           }"
           @close="error = ''"
@@ -73,8 +73,8 @@ const handleLogin = async () => {
     } else {
       await navigateTo('/');
     }
-  } catch (e: any) {
-    error.value = e.message || 'Wystąpił błąd podczas logowania';
+  } catch (e) {
+    error.value = (e as Error).message || 'Wystąpił błąd podczas logowania';
   } finally {
     loading.value = false;
   }

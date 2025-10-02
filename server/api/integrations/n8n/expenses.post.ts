@@ -106,10 +106,10 @@ export default defineEventHandler(async (event) => {
       success: true,
       expense,
     };
-  } catch (error: any) {
+  } catch (error) {
     throw createError({
       statusCode: 400,
-      statusMessage: error.message || 'Error creating expense',
+      statusMessage: (error as Error).message || 'Error creating expense',
     });
   }
 });
