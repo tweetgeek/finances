@@ -280,7 +280,7 @@ const getDropdownItems = (expense: Expense) => [
       icon: expense.is_paid
         ? 'i-heroicons-x-circle'
         : 'i-heroicons-check-circle',
-      click: () => togglePaid(expense),
+      onSelect: () => togglePaid(expense),
     },
     {
       label: 'Edytuj',
@@ -290,7 +290,7 @@ const getDropdownItems = (expense: Expense) => [
     {
       label: 'Usuń',
       icon: 'i-heroicons-trash',
-      click: () => deleteExpense(expense),
+      onSelect: () => deleteExpense(expense),
     },
   ],
 ];
