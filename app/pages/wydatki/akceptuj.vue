@@ -288,6 +288,13 @@
               />
             </UFormField>
 
+            <UFormField label="Data zakończenia" name="end_date">
+              <UInput
+                v-model="recurringForm.end_date"
+                type="date"
+              />
+            </UFormField>
+
             <UFormField label="Kategorie" name="categories">
               <div class="space-y-2">
                 <div
@@ -388,6 +395,7 @@ const recurringForm = reactive({
   day_of_month: 1,
   is_company: false,
   note: '',
+  end_date: null as string | null,
   selectedCategories: [] as Category[],
 });
 
@@ -444,6 +452,12 @@ const checkIfShouldSuggest = async (
   recurring: RecurringExpense,
   today: Date
 ): Promise<boolean> => {
+  // Check if end_date has passed
+  if (recurring.end_date) {
+    const endDate = new Date(recurring.end_date);
+    if (today > endDate) return false;
+  }
+
   // If never generated, suggest it
   if (!recurring.last_generated_date) return true;
 
@@ -640,6 +654,7 @@ const editRecurring = async (recurring: RecurringExpense) => {
     day_of_month: recurring.day_of_month || 1,
     is_company: recurring.is_company,
     note: recurring.note || '',
+    end_date: recurring.end_date || null,
     selectedCategories: selectedCats,
   });
   showAddModal.value = true;
@@ -678,6 +693,7 @@ const saveRecurring = async () => {
           day_of_month: recurringForm.day_of_month,
           is_company: recurringForm.is_company,
           note: recurringForm.note || null,
+          end_date: recurringForm.end_date || null,
         })
         .eq('id', editingRecurring.value.id);
 
@@ -702,6 +718,7 @@ const saveRecurring = async () => {
           day_of_month: recurringForm.day_of_month,
           is_company: recurringForm.is_company,
           note: recurringForm.note || null,
+          end_date: recurringForm.end_date || null,
           is_active: true,
         })
         .select()
@@ -736,6 +753,7 @@ const saveRecurring = async () => {
       day_of_month: 1,
       is_company: false,
       note: '',
+      end_date: null,
       selectedCategories: [],
     });
 
