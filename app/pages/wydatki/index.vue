@@ -2,7 +2,18 @@
   <div>
     <div class="flex justify-between items-center mb-8">
       <h1 class="text-3xl font-bold">Wydatki</h1>
-      <UButton @click="$router.push('/wydatki/nowy')"> Dodaj wydatek </UButton>
+      <div class="flex gap-2">
+        <UButton
+          color="neutral"
+          variant="outline"
+          @click="$router.push('/wydatki/akceptuj')"
+        >
+          Panel akceptacji
+        </UButton>
+        <UButton @click="$router.push('/wydatki/nowy')">
+          Dodaj wydatek
+        </UButton>
+      </div>
     </div>
 
     <!-- Filters -->
@@ -17,8 +28,8 @@
         <UFormField label="Status płatności">
           <USelect
             v-model="filters.paymentStatus"
-            :options="[
-              { label: 'Wszystkie', value: '' },
+            placeholder="Wszystkie"
+            :items="[
               { label: 'Opłacone', value: 'paid' },
               { label: 'Nieopłacone', value: 'unpaid' },
             ]"
@@ -27,8 +38,8 @@
         <UFormField label="Typ">
           <USelect
             v-model="filters.companyType"
-            :options="[
-              { label: 'Wszystkie', value: '' },
+            placeholder="Wszystkie"
+            :items="[
               { label: 'Firmowe', value: 'company' },
               { label: 'Prywatne', value: 'private' },
             ]"
@@ -113,7 +124,7 @@
               </td>
               <td class="px-6 py-4 whitespace-nowrap text-sm text-center">
                 <UBadge
-                  :color="expense.is_company ? 'blue' : 'gray'"
+                  :color="expense.is_company ? 'info' : 'neutral'"
                   variant="subtle"
                 >
                   {{ expense.is_company ? 'Firmowy' : 'Prywatny' }}
@@ -121,7 +132,7 @@
               </td>
               <td class="px-6 py-4 whitespace-nowrap text-sm text-center">
                 <UBadge
-                  :color="expense.is_paid ? 'green' : 'red'"
+                  :color="expense.is_paid ? 'success' : 'error'"
                   variant="subtle"
                 >
                   {{ expense.is_paid ? 'Opłacone' : 'Nieopłacone' }}
@@ -167,7 +178,6 @@ type Expense = Database['public']['Tables']['expenses']['Row'];
 
 const supabase = useSupabaseClient<Database>();
 const user = useSupabaseUser();
-const router = useRouter();
 
 const expenses = ref<Expense[]>([]);
 const loading = ref(true);
@@ -175,8 +185,8 @@ const loading = ref(true);
 const filters = reactive({
   dateFrom: '',
   dateTo: '',
-  paymentStatus: '',
-  companyType: '',
+  paymentStatus: null as string | null,
+  companyType: null as string | null,
 });
 
 const loadExpenses = async () => {
@@ -275,7 +285,7 @@ const getDropdownItems = (expense: Expense) => [
     {
       label: 'Edytuj',
       icon: 'i-heroicons-pencil-square',
-      click: () => router.push(`/wydatki/${expense.id}`),
+      to: `/wydatki/${expense.id}`,
     },
     {
       label: 'Usuń',

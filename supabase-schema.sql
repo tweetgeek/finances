@@ -277,6 +277,61 @@ create policy "owner can insert obligations" on public.obligations for insert wi
 create policy "owner can update obligations" on public.obligations for update using (auth.uid() = user_id) with check (auth.uid() = user_id);
 create policy "owner can delete obligations" on public.obligations for delete using (auth.uid() = user_id);
 
+-- Recurring Expense Templates
+create table if not exists public.recurring_expenses (
+  id uuid primary key default uuid_generate_v4(),
+  user_id uuid not null references auth.users(id) on delete cascade,
+  title text not null,
+  counterparty text,
+  amount_net numeric(12,2),
+  amount_gross numeric(12,2),
+  vat_rate numeric(5,2) not null default 23.00,
+  is_company boolean not null default false,
+  deductible_override boolean,
+  deductible_ratio numeric(4,3),
+  note text,
+  frequency text not null check (frequency in ('monthly', 'quarterly', 'yearly')) default 'monthly',
+  day_of_month int check (day_of_month between 1 and 31),
+  is_active boolean not null default true,
+  last_generated_date date,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+create index on public.recurring_expenses(user_id);
+create index on public.recurring_expenses(is_active);
+
+-- Recurring Expense Categories (M:N)
+create table if not exists public.recurring_expense_categories (
+  recurring_expense_id uuid references public.recurring_expenses(id) on delete cascade,
+  category_id uuid references public.categories(id) on delete cascade,
+  primary key (recurring_expense_id, category_id)
+);
+create index on public.recurring_expense_categories(category_id);
+
+-- RLS Policies for Recurring Expenses
+alter table public.recurring_expenses enable row level security;
+alter table public.recurring_expense_categories enable row level security;
+
+create policy "owner can read recurring_expenses" on public.recurring_expenses for select using (auth.uid() = user_id);
+create policy "owner can insert recurring_expenses" on public.recurring_expenses for insert with check (auth.uid() = user_id);
+create policy "owner can update recurring_expenses" on public.recurring_expenses for update using (auth.uid() = user_id) with check (auth.uid() = user_id);
+create policy "owner can delete recurring_expenses" on public.recurring_expenses for delete using (auth.uid() = user_id);
+
+create policy "owner can read recurring_expense_categories" on public.recurring_expense_categories for select using (
+  auth.uid() = (select user_id from recurring_expenses r where r.id = recurring_expense_id)
+);
+create policy "owner can insert recurring_expense_categories" on public.recurring_expense_categories for insert with check (
+  auth.uid() = (select user_id from recurring_expenses r where r.id = recurring_expense_id)
+);
+create policy "owner can update recurring_expense_categories" on public.recurring_expense_categories for update using (
+  auth.uid() = (select user_id from recurring_expenses r where r.id = recurring_expense_id)
+) with check (
+  auth.uid() = (select user_id from recurring_expenses r where r.id = recurring_expense_id)
+);
+create policy "owner can delete recurring_expense_categories" on public.recurring_expense_categories for delete using (
+  auth.uid() = (select user_id from recurring_expenses r where r.id = recurring_expense_id)
+);
+
 -- Default Categories (run this AFTER creating your user)
 -- Replace 'YOUR_USER_ID' with actual UUID from auth.users
 /*

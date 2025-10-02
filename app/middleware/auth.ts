@@ -1,4 +1,4 @@
-export default defineNuxtRouteMiddleware((to) => {
+export default defineNuxtRouteMiddleware(() => {
   const user = useSupabaseUser()
 
   // If user is not logged in, redirect to login

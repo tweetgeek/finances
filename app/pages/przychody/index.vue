@@ -17,8 +17,8 @@
         <UFormField label="Typ">
           <USelect
             v-model="filters.companyType"
-            :options="[
-              { label: 'Wszystkie', value: '' },
+            placeholder="Wszystkie"
+            :items="[
               { label: 'Firmowe', value: 'company' },
               { label: 'Prywatne', value: 'private' },
             ]"
@@ -105,7 +105,7 @@
               </td>
               <td class="px-6 py-4 whitespace-nowrap text-sm text-center">
                 <UBadge
-                  :color="income.is_company ? 'blue' : 'gray'"
+                  :color="income.is_company ? 'info' : 'neutral'"
                   variant="subtle"
                 >
                   {{ income.is_company ? 'Firmowy' : 'Prywatny' }}
@@ -154,7 +154,7 @@
       :title="editingIncome ? 'Edytuj przychód' : 'Dodaj przychód'"
     >
       <template #content>
-        <form @submit.prevent="handleSubmit" class="space-y-4 p-4">
+        <form class="space-y-4 p-4" @submit.prevent="handleSubmit">
           <UFormField label="Tytuł" name="title" required>
             <UInput
               v-model="form.title"
@@ -181,7 +181,7 @@
           <UFormField label="Stawka VAT (%)" name="vat_rate" required>
             <USelect
               v-model="form.vat_rate"
-              :options="[
+              :items="[
                 { label: '23%', value: 23 },
                 { label: '8%', value: 8 },
                 { label: '5%', value: 5 },
@@ -233,7 +233,7 @@
             <UTextarea
               v-model="form.note"
               placeholder="Dodatkowe informacje..."
-              rows="3"
+              :rows="3"
             />
           </UFormField>
 
@@ -274,7 +274,7 @@ const activeField = ref<'net' | 'gross'>('gross');
 const filters = reactive({
   dateFrom: '',
   dateTo: '',
-  companyType: '',
+  companyType: null as string | null,
 });
 
 const form = reactive({
@@ -418,7 +418,6 @@ const handleSubmit = async () => {
   saving.value = true;
 
   const incomeData = {
-    user_id: user.value.sub,
     title: form.title,
     note: form.note || null,
     counterparty: form.counterparty || null,
@@ -443,7 +442,10 @@ const handleSubmit = async () => {
       closeModal();
     }
   } else {
-    const { error } = await supabase.from('incomes').insert(incomeData);
+    const { error } = await supabase.from('incomes').insert({
+      ...incomeData,
+      user_id: user.value.sub,
+    });
 
     if (error) {
       console.error('Error creating income:', error);

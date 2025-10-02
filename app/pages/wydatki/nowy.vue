@@ -12,7 +12,7 @@
     </div>
 
     <UCard>
-      <form @submit.prevent="handleSubmit" class="space-y-6">
+      <form class="space-y-6" @submit.prevent="handleSubmit">
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
           <!-- Basic Info -->
           <UFormField label="Tytuł" name="title" required>
@@ -41,7 +41,7 @@
           <UFormField label="Stawka VAT (%)" name="vat_rate" required>
             <USelect
               v-model="form.vat_rate"
-              :options="[
+              :items="[
                 { label: '23%', value: 23 },
                 { label: '8%', value: 8 },
                 { label: '5%', value: 5 },
@@ -107,7 +107,7 @@
               v-for="category in categories"
               :key="category.id"
               :color="
-                form.category_ids.includes(category.id) ? 'primary' : 'gray'
+                form.category_ids.includes(category.id) ? 'primary' : 'neutral'
               "
               :variant="
                 form.category_ids.includes(category.id) ? 'solid' : 'outline'
@@ -139,11 +139,11 @@
           >
             <UFormField label="Odliczalność" name="deductible_override">
               <USelect
-                v-model="form.deductible_override"
-                :options="[
-                  { label: 'Dziedzicz z kategorii', value: null },
-                  { label: 'Odliczalne', value: true },
-                  { label: 'Nieodliczalne', value: false },
+                v-model="deductibleOverrideSelect"
+                :items="[
+                  { label: 'Dziedzicz z kategorii', value: 'inherit' },
+                  { label: 'Odliczalne', value: 'deductible' },
+                  { label: 'Nieodliczalne', value: 'non-deductible' },
                 ]"
               />
             </UFormField>
@@ -184,7 +184,7 @@
             <UTextarea
               v-model="form.note"
               placeholder="Dodatkowe informacje..."
-              rows="3"
+              :rows="3"
             />
           </UFormField>
         </div>
@@ -241,6 +241,19 @@ const form = reactive({
   is_paid: false,
   paid_at: '',
   category_ids: [] as string[],
+});
+
+const deductibleOverrideSelect = computed({
+  get: () => {
+    if (form.deductible_override === null) return 'inherit';
+    if (form.deductible_override === true) return 'deductible';
+    return 'non-deductible';
+  },
+  set: (value: string) => {
+    if (value === 'inherit') form.deductible_override = null;
+    else if (value === 'deductible') form.deductible_override = true;
+    else form.deductible_override = false;
+  },
 });
 
 const loadCategories = async () => {
