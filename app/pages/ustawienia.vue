@@ -1,0 +1,208 @@
+<template>
+  <div>
+    <h1 class="text-3xl font-bold mb-8">Ustawienia</h1>
+
+    <UCard v-if="loading" class="text-center"> Ładowanie... </UCard>
+
+    <div v-else class="space-y-6">
+      <!-- Tax Settings -->
+      <UCard>
+        <template #header>
+          <h2 class="text-xl font-semibold">Ustawienia podatkowe</h2>
+        </template>
+
+        <div class="space-y-4">
+          <UFormField label="Forma opodatkowania" required>
+            <USelect
+              v-model="settings.tax_type"
+              :items="taxTypeOptions"
+              @update:model-value="updateSettings"
+            />
+          </UFormField>
+
+          <UFormField label="Stawka podatku">
+            <UInput
+              :model-value="settings.tax_rate + '%'"
+              disabled
+              placeholder="Automatycznie z formy opodatkowania"
+            />
+          </UFormField>
+
+          <UFormField>
+            <UCheckbox
+              v-model="settings.vat_enabled"
+              label="Płatnik VAT"
+              @update:model-value="updateSettings"
+            />
+          </UFormField>
+
+          <UFormField v-if="settings.vat_enabled" label="Stawka VAT domyślna">
+            <USelect
+              v-model="settings.vat_rate"
+              :items="vatRates"
+              @update:model-value="updateSettings"
+            />
+          </UFormField>
+        </div>
+      </UCard>
+
+      <!-- Business Info -->
+      <UCard>
+        <template #header>
+          <h2 class="text-xl font-semibold">Dane firmy</h2>
+        </template>
+
+        <div class="space-y-4">
+          <UFormField label="Nazwa firmy">
+            <UInput
+              v-model="settings.company_name"
+              placeholder="Nazwa firmy"
+              @blur="updateSettings"
+            />
+          </UFormField>
+        </div>
+      </UCard>
+
+      <div v-if="saveStatus" class="text-sm text-green-600">
+        Ustawienia zapisane automatycznie
+      </div>
+    </div>
+  </div>
+</template>
+
+<script setup lang="ts">
+import type { Database } from '~/types/database';
+
+definePageMeta({
+  middleware: 'auth',
+});
+
+type CompanySettings = Database['public']['Tables']['company_settings']['Row'];
+
+const supabase = useSupabaseClient<Database>();
+const user = useSupabaseUser();
+
+const loading = ref(true);
+const saveStatus = ref(false);
+
+const settings = reactive({
+  tax_type: 'ryczalt_12' as string,
+  tax_rate: 12,
+  zus_amount: 0,
+  vat_enabled: true,
+  vat_rate: 23,
+  company_name: '',
+});
+
+const taxTypeOptions = [
+  { label: 'Ryczałt 2%', value: 'ryczalt_2' },
+  { label: 'Ryczałt 3%', value: 'ryczalt_3' },
+  { label: 'Ryczałt 5.5%', value: 'ryczalt_5_5' },
+  { label: 'Ryczałt 8.5%', value: 'ryczalt_8_5' },
+  { label: 'Ryczałt 10%', value: 'ryczalt_10' },
+  { label: 'Ryczałt 12%', value: 'ryczalt_12' },
+  { label: 'Ryczałt 12.5%', value: 'ryczalt_12_5' },
+  { label: 'Ryczałt 14%', value: 'ryczalt_14' },
+  { label: 'Ryczałt 15%', value: 'ryczalt_15' },
+  { label: 'Ryczałt 17%', value: 'ryczalt_17' },
+  { label: 'Podatek liniowy 19%', value: 'liniowy_19' },
+  { label: 'Skala podatkowa', value: 'skala' },
+];
+
+const vatRates = [
+  { label: '23%', value: 23 },
+  { label: '8%', value: 8 },
+  { label: '5%', value: 5 },
+  { label: '0%', value: 0 },
+];
+
+const extractTaxRate = (taxType: string): number => {
+  const match = taxType.match(/(\d+(?:_\d+)?)/);
+  if (!match) return 12;
+  return parseFloat(match[1].replace('_', '.'));
+};
+
+const loadSettings = async () => {
+  if (!user.value) {
+    console.log('No user found');
+    return;
+  }
+
+  console.log('Loading settings for user:', user.value.id || user.value.sub);
+  loading.value = true;
+
+  const { data, error } = await supabase
+    .from('company_settings')
+    .select('*')
+    .eq('user_id', user.value.id || user.value.sub)
+    .single();
+
+  if (error && error.code !== 'PGRST116') {
+    console.error('Error loading settings:', error);
+    console.error('Error details:', JSON.stringify(error, null, 2));
+  } else if (data) {
+    console.log('Settings loaded:', data);
+    Object.assign(settings, {
+      tax_type: data.income_tax_scheme || 'ryczalt_12',
+      tax_rate: extractTaxRate(data.income_tax_scheme || 'ryczalt_12'),
+      zus_amount: 0,
+      vat_enabled: data.vat_active ?? true,
+      vat_rate: data.default_vat_rate || 23,
+      company_name: data.company_name || '',
+    });
+  } else {
+    console.log('No settings found, using defaults');
+  }
+  loading.value = false;
+};
+
+let saveTimeout: ReturnType<typeof setTimeout> | null = null;
+
+const updateSettings = async () => {
+  if (!user.value) return;
+
+  // Debounce saving
+  if (saveTimeout) {
+    clearTimeout(saveTimeout);
+  }
+
+  saveTimeout = setTimeout(async () => {
+    const settingsData = {
+      user_id: user.value!.id || user.value!.sub,
+      income_tax_scheme: settings.tax_type,
+      vat_active: settings.vat_enabled,
+      default_vat_rate: settings.vat_rate,
+      company_name: settings.company_name || null,
+    };
+
+    console.log('Saving settings:', settingsData);
+
+    const { error } = await supabase
+      .from('company_settings')
+      .upsert(settingsData, { onConflict: 'user_id' });
+
+    if (error) {
+      console.error('Error saving settings:', error);
+      console.error('Error details:', JSON.stringify(error, null, 2));
+    } else {
+      console.log('Settings saved successfully');
+      settings.tax_rate = extractTaxRate(settings.tax_type);
+      saveStatus.value = true;
+      setTimeout(() => {
+        saveStatus.value = false;
+      }, 2000);
+    }
+  }, 500);
+};
+
+watch(
+  () => settings.tax_type,
+  (newType) => {
+    settings.tax_rate = extractTaxRate(newType);
+  }
+);
+
+onMounted(() => {
+  loadSettings();
+});
+</script>
