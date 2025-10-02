@@ -477,12 +477,12 @@ const getDropdownItems = (income: Income) => [
     {
       label: 'Edytuj',
       icon: 'i-heroicons-pencil-square',
-      click: () => openEditModal(income),
+      onSelect: () => openEditModal(income),
     },
     {
       label: 'Usuń',
       icon: 'i-heroicons-trash',
-      click: () => deleteIncome(income),
+      onSelect: () => deleteIncome(income),
     },
   ],
 ];

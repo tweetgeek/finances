@@ -59,7 +59,7 @@
           </UFormField>
 
           <UFormField label="Kolor" name="color">
-            <UInput v-model="form.color" type="color" />
+            <UColorPicker v-model="form.color" />
           </UFormField>
 
           <UFormField label="Odliczalna w firmie" name="is_deductible">
@@ -225,12 +225,12 @@ const getDropdownItems = (category: Category) => [
     {
       label: 'Edytuj',
       icon: 'i-heroicons-pencil-square',
-      click: () => openEditModal(category),
+      onSelect: () => openEditModal(category),
     },
     {
       label: 'Usuń',
       icon: 'i-heroicons-trash',
-      click: () => deleteCategory(category),
+      onSelect: () => deleteCategory(category),
     },
   ],
 ];
