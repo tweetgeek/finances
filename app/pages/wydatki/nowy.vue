@@ -1,19 +1,21 @@
 <template>
   <div>
-    <div class="mb-8">
+    <div class="mb-6 sm:mb-8">
       <UButton
         variant="ghost"
         icon="i-heroicons-arrow-left"
         @click="$router.push('/wydatki')"
+        size="sm"
+        class="sm:size-md"
       >
-        Powrót do listy
+        Powrót
       </UButton>
-      <h1 class="text-3xl font-bold mt-4">Dodaj wydatek</h1>
+      <h1 class="text-2xl sm:text-3xl font-bold mt-4">Dodaj wydatek</h1>
     </div>
 
     <UCard>
-      <form class="space-y-6" @submit.prevent="handleSubmit">
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <form class="space-y-4 sm:space-y-6" @submit.prevent="handleSubmit">
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
           <!-- Basic Info -->
           <UFormField label="Tytuł" name="title" required>
             <UInput v-model="form.title" placeholder="Nazwa wydatku" required />
@@ -61,19 +63,19 @@
         </div>
 
         <!-- Amount Calculation -->
-        <div class="border-t border-gray-200 dark:border-gray-700 pt-6">
-          <h3 class="text-lg font-semibold mb-4">Kwoty</h3>
+        <div class="border-t border-gray-200 dark:border-gray-700 pt-4 sm:pt-6">
+          <h3 class="text-base sm:text-lg font-semibold mb-3 sm:mb-4">Kwoty</h3>
 
           <!-- Exchange Rate Info -->
           <div v-if="form.currency_code !== 'PLN' && exchangeRate" class="mb-4 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
-            <div class="text-sm">
+            <div class="text-xs sm:text-sm">
               <span class="font-medium">Kurs {{ form.currency_code }}/PLN:</span>
               <span class="ml-2">{{ exchangeRate.toFixed(4) }}</span>
-              <span class="ml-2 text-gray-500">(z dnia {{ form.issue_date }})</span>
+              <span class="block sm:inline sm:ml-2 text-gray-500">(z dnia {{ form.issue_date }})</span>
             </div>
           </div>
 
-          <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             <UFormField :label="`Kwota netto (${form.currency_code})`" name="amount_net">
               <UInput
                 v-model="form.amount_net"

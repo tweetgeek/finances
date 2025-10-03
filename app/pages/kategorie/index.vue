@@ -1,8 +1,8 @@
 <template>
   <div>
-    <div class="flex justify-between items-center mb-8">
-      <h1 class="text-3xl font-bold">Kategorie</h1>
-      <UButton @click="openCreateModal"> Dodaj kategorię </UButton>
+    <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-6 sm:mb-8">
+      <h1 class="text-2xl sm:text-3xl font-bold">Kategorie</h1>
+      <UButton @click="openCreateModal" class="w-full sm:w-auto"> Dodaj kategorię </UButton>
     </div>
 
     <UCard v-if="loading" class="text-center"> Ładowanie... </UCard>
@@ -49,7 +49,7 @@
       :title="editingCategory ? 'Edytuj kategorię' : 'Dodaj kategorię'"
     >
       <template #content>
-        <form class="space-y-4 p-4" @submit.prevent="handleSubmit">
+        <form class="space-y-4 p-3 sm:p-4" @submit.prevent="handleSubmit">
           <UFormField label="Nazwa" name="name" required>
             <UInput
               v-model="form.name"
@@ -80,11 +80,11 @@
             />
           </UFormField>
 
-          <div class="flex justify-end space-x-2">
-            <UButton color="neutral" variant="ghost" @click="closeModal">
+          <div class="flex flex-col sm:flex-row justify-end gap-2 sm:space-x-2">
+            <UButton color="neutral" variant="ghost" @click="closeModal" class="w-full sm:w-auto">
               Anuluj
             </UButton>
-            <UButton type="submit" :loading="saving">
+            <UButton type="submit" :loading="saving" class="w-full sm:w-auto">
               {{ editingCategory ? 'Zapisz' : 'Dodaj' }}
             </UButton>
           </div>

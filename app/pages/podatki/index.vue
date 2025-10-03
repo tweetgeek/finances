@@ -1,12 +1,10 @@
 <template>
   <div>
-    <div class="flex justify-between items-center mb-8">
-      <h1 class="text-3xl font-bold">Podatki i zobowiązania</h1>
-      <div class="flex gap-2">
-        <UButton color="neutral" variant="outline" to="/ustawienia">
-          Ustawienia podatkowe
-        </UButton>
-      </div>
+    <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-6 sm:mb-8">
+      <h1 class="text-2xl sm:text-3xl font-bold">Podatki i zobowiązania</h1>
+      <UButton color="neutral" variant="outline" to="/ustawienia" class="w-full sm:w-auto">
+        Ustawienia podatkowe
+      </UButton>
     </div>
 
     <!-- Period selector -->
@@ -37,10 +35,10 @@
     </UCard>
 
     <!-- Summary Cards -->
-    <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
       <UCard v-if="userSettings?.vat_active">
         <div class="text-sm text-gray-500 mb-1">VAT do zapłaty</div>
-        <div class="text-2xl font-bold">
+        <div class="text-xl sm:text-2xl font-bold">
           {{ formatCurrency(calculatedTaxes.vat) }}
         </div>
         <div class="text-xs text-gray-500 mt-1">
@@ -49,7 +47,7 @@
       </UCard>
       <UCard>
         <div class="text-sm text-gray-500 mb-1">ZUS</div>
-        <div class="text-2xl font-bold">
+        <div class="text-xl sm:text-2xl font-bold">
           {{ formatCurrency(calculatedTaxes.zus) }}
         </div>
         <div class="text-xs text-gray-500 mt-1">
@@ -58,7 +56,7 @@
       </UCard>
       <UCard>
         <div class="text-sm text-gray-500 mb-1">Podatek dochodowy</div>
-        <div class="text-2xl font-bold">
+        <div class="text-xl sm:text-2xl font-bold">
           {{ formatCurrency(calculatedTaxes.income_tax) }}
         </div>
         <div class="text-xs text-gray-500 mt-1">
@@ -70,7 +68,7 @@
       </UCard>
       <UCard>
         <div class="text-sm text-gray-500 mb-1">Suma zobowiązań</div>
-        <div class="text-2xl font-bold text-red-500">
+        <div class="text-xl sm:text-2xl font-bold text-red-500">
           {{ formatCurrency(calculatedTaxes.total) }}
         </div>
         <div class="text-xs text-gray-500 mt-1">
@@ -88,10 +86,10 @@
     <!-- Calculation Details -->
     <UCard class="mb-6">
       <template #header>
-        <h3 class="text-lg font-semibold">Szczegóły obliczeń</h3>
+        <h3 class="text-base sm:text-lg font-semibold">Szczegóły obliczeń</h3>
       </template>
 
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div v-if="userSettings?.vat_active">
           <h4 class="font-medium mb-2">VAT</h4>
           <div class="space-y-1 text-sm">

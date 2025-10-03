@@ -1,16 +1,17 @@
 <template>
   <div>
-    <div class="flex justify-between items-center mb-8">
-      <h1 class="text-3xl font-bold">Wydatki</h1>
-      <div class="flex gap-2">
+    <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-6 sm:mb-8">
+      <h1 class="text-2xl sm:text-3xl font-bold">Wydatki</h1>
+      <div class="flex flex-col sm:flex-row gap-2">
         <UButton
           color="neutral"
           variant="outline"
           @click="$router.push('/wydatki/akceptuj')"
+          class="w-full sm:w-auto"
         >
           Panel akceptacji
         </UButton>
-        <UButton @click="$router.push('/wydatki/nowy')">
+        <UButton @click="$router.push('/wydatki/nowy')" class="w-full sm:w-auto">
           Dodaj wydatek
         </UButton>
       </div>
@@ -57,7 +58,91 @@
     </UCard>
 
     <UCard v-else>
-      <div class="overflow-x-auto">
+      <!-- Mobile view - Cards -->
+      <div class="md:hidden space-y-4">
+        <UCard v-for="expense in filteredExpenses" :key="expense.id">
+          <div class="space-y-3">
+            <div class="flex justify-between items-start">
+              <div class="flex-1">
+                <div class="font-medium text-base">{{ expense.title }}</div>
+                <div class="text-xs text-gray-500 mt-0.5">
+                  {{ formatDate(expense.issue_date) }}
+                </div>
+                <div
+                  v-if="expense.counterparty"
+                  class="text-xs text-gray-500 mt-0.5"
+                >
+                  {{ expense.counterparty }}
+                </div>
+                <div
+                  v-if="expense.invoice_number"
+                  class="text-xs text-gray-500 mt-0.5"
+                >
+                  {{ expense.invoice_number }}
+                </div>
+              </div>
+              <UDropdownMenu :items="getDropdownItems(expense)">
+                <UButton
+                  color="neutral"
+                  variant="ghost"
+                  icon="i-heroicons-ellipsis-vertical"
+                  size="sm"
+                />
+              </UDropdownMenu>
+            </div>
+
+            <div class="flex justify-between items-center">
+              <span class="text-lg font-bold">
+                {{ formatCurrency(expense.amount_gross, expense.currency_code || 'PLN') }}
+              </span>
+              <div class="flex gap-2">
+                <UBadge
+                  :color="expense.is_company ? 'info' : 'neutral'"
+                  variant="subtle"
+                  size="sm"
+                >
+                  {{ expense.is_company ? 'Firmowy' : 'Prywatny' }}
+                </UBadge>
+                <UBadge
+                  :color="expense.is_paid ? 'success' : 'error'"
+                  variant="subtle"
+                  size="sm"
+                >
+                  {{ expense.is_paid ? 'Opłacone' : 'Nieopłacone' }}
+                </UBadge>
+              </div>
+            </div>
+
+            <div
+              v-if="expense.currency_code !== 'PLN' && expense.amount_gross_pln"
+              class="text-xs text-gray-500"
+            >
+              ≈ {{ formatCurrency(expense.amount_gross_pln, 'PLN') }}
+            </div>
+
+            <div v-if="expense.categories.length > 0" class="flex flex-wrap gap-1">
+              <UBadge
+                v-for="cat in expense.categories"
+                :key="cat.id"
+                color="neutral"
+                variant="subtle"
+                size="xs"
+              >
+                <div class="flex items-center gap-1">
+                  <div
+                    class="w-2 h-2 rounded-full"
+                    :style="{ backgroundColor: cat.color || '#3b82f6' }"
+                  />
+                  {{ cat.name }}
+                </div>
+              </UBadge>
+            </div>
+          </div>
+        </UCard>
+      </div>
+
+      <!-- Desktop view - Table -->
+      <div class="hidden md:block overflow-x-auto">
         <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
           <thead class="bg-gray-50 dark:bg-gray-800">
             <tr>
