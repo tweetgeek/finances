@@ -1,8 +1,8 @@
 <template>
   <div>
-    <div class="flex justify-between items-center mb-8">
-      <h1 class="text-3xl font-bold">Przychody</h1>
-      <UButton @click="openCreateModal"> Dodaj przychód </UButton>
+    <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-6 sm:mb-8">
+      <h1 class="text-2xl sm:text-3xl font-bold">Przychody</h1>
+      <UButton @click="openCreateModal" class="w-full sm:w-auto"> Dodaj przychód </UButton>
     </div>
 
     <!-- Filters -->
@@ -36,7 +36,56 @@
     </UCard>
 
     <UCard v-else>
-      <div class="overflow-x-auto">
+      <!-- Mobile view - Cards -->
+      <div class="md:hidden space-y-4">
+        <UCard v-for="income in filteredIncomes" :key="income.id">
+          <div class="space-y-3">
+            <div class="flex justify-between items-start">
+              <div class="flex-1">
+                <div class="font-medium text-base">{{ income.title }}</div>
+                <div class="text-xs text-gray-500 mt-0.5">
+                  {{ formatDate(income.issue_date) }}
+                </div>
+                <div v-if="income.counterparty" class="text-xs text-gray-500 mt-0.5">
+                  {{ income.counterparty }}
+                </div>
+                <div v-if="income.invoice_number" class="text-xs text-gray-500 mt-0.5">
+                  {{ income.invoice_number }}
+                </div>
+              </div>
+              <UDropdownMenu :items="getDropdownItems(income)">
+                <UButton
+                  color="neutral"
+                  variant="ghost"
+                  icon="i-heroicons-ellipsis-vertical"
+                  size="sm"
+                />
+              </UDropdownMenu>
+            </div>
+
+            <div class="flex justify-between items-center">
+              <div>
+                <div class="text-lg font-bold">
+                  {{ formatCurrency(income.amount_gross) }}
+                </div>
+                <div class="text-xs text-gray-500">
+                  VAT: {{ formatCurrency(income.vat_amount) }}
+                </div>
+              </div>
+              <UBadge
+                :color="income.is_company ? 'info' : 'neutral'"
+                variant="subtle"
+                size="sm"
+              >
+                {{ income.is_company ? 'Firmowy' : 'Prywatny' }}
+              </UBadge>
+            </div>
+          </div>
+        </UCard>
+      </div>
+
+      <!-- Desktop view - Table -->
+      <div class="hidden md:block overflow-x-auto">
         <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
           <thead class="bg-gray-50 dark:bg-gray-800">
             <tr>
@@ -154,7 +203,7 @@
       :title="editingIncome ? 'Edytuj przychód' : 'Dodaj przychód'"
     >
       <template #content>
-        <form class="space-y-4 p-4" @submit.prevent="handleSubmit">
+        <form class="space-y-4 p-3 sm:p-4" @submit.prevent="handleSubmit">
           <UFormField label="Tytuł" name="title" required>
             <UInput
               v-model="form.title"
@@ -191,7 +240,7 @@
             />
           </UFormField>
 
-          <div class="grid grid-cols-2 gap-4">
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <UFormField label="Kwota netto" name="amount_net">
               <UInput
                 v-model="form.amount_net"
@@ -237,11 +286,11 @@
             />
           </UFormField>
 
-          <div class="flex justify-end space-x-2">
-            <UButton color="neutral" variant="ghost" @click="closeModal">
+          <div class="flex flex-col sm:flex-row justify-end gap-2 sm:space-x-2">
+            <UButton color="neutral" variant="ghost" @click="closeModal" class="w-full sm:w-auto">
               Anuluj
             </UButton>
-            <UButton type="submit" :loading="saving">
+            <UButton type="submit" :loading="saving" class="w-full sm:w-auto">
               {{ editingIncome ? 'Zapisz' : 'Dodaj' }}
             </UButton>
           </div>

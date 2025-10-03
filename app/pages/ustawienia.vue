@@ -1,14 +1,14 @@
 <template>
   <div>
-    <h1 class="text-3xl font-bold mb-8">Ustawienia</h1>
+    <h1 class="text-2xl sm:text-3xl font-bold mb-6 sm:mb-8">Ustawienia</h1>
 
     <UCard v-if="loading" class="text-center"> Ładowanie... </UCard>
 
-    <div v-else class="space-y-6">
+    <div v-else class="space-y-4 sm:space-y-6">
       <!-- Tax Settings -->
       <UCard>
         <template #header>
-          <h2 class="text-xl font-semibold">Ustawienia podatkowe</h2>
+          <h2 class="text-lg sm:text-xl font-semibold">Ustawienia podatkowe</h2>
         </template>
 
         <div class="space-y-4">
@@ -49,7 +49,7 @@
       <!-- ZUS Settings -->
       <UCard>
         <template #header>
-          <h2 class="text-xl font-semibold">Ustawienia ZUS</h2>
+          <h2 class="text-lg sm:text-xl font-semibold">Ustawienia ZUS</h2>
         </template>
 
         <div class="space-y-4">
