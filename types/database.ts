@@ -336,6 +336,54 @@ export type Database = {
         }
         Relationships: []
       }
+      loans: {
+        Row: {
+          bank_name: string
+          created_at: string
+          end_date: string
+          id: string
+          is_active: boolean
+          is_company: boolean
+          last_generated_date: string | null
+          loan_purpose: string
+          monthly_amount: number
+          start_date: string
+          title: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          bank_name: string
+          created_at?: string
+          end_date: string
+          id?: string
+          is_active?: boolean
+          is_company?: boolean
+          last_generated_date?: string | null
+          loan_purpose: string
+          monthly_amount: number
+          start_date: string
+          title: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          bank_name?: string
+          created_at?: string
+          end_date?: string
+          id?: string
+          is_active?: boolean
+          is_company?: boolean
+          last_generated_date?: string | null
+          loan_purpose?: string
+          monthly_amount?: number
+          start_date?: string
+          title?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       obligations: {
         Row: {
           amount: number
