@@ -190,8 +190,10 @@ const loading = ref(true);
 const userSettings = ref<CompanySettings | null>(null);
 
 const currentDate = new Date();
-const selectedYear = ref(currentDate.getFullYear());
-const selectedMonth = ref<number | null>(currentDate.getMonth() + 1);
+// Default to previous month
+const previousMonth = new Date(currentDate.getFullYear(), currentDate.getMonth() - 1);
+const selectedYear = ref(previousMonth.getFullYear());
+const selectedMonth = ref<number | null>(previousMonth.getMonth() + 1);
 
 const filters = reactive({
   type: null as string | null,
