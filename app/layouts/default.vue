@@ -34,6 +34,22 @@
                 Wydatki
               </NuxtLink>
               <NuxtLink
+                to="/akceptacja"
+                class="inline-flex items-center px-1 pt-1 text-sm font-medium"
+                active-class="border-b-2 border-primary-500 text-gray-900 dark:text-white"
+                inactive-class="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+              >
+                Akceptacja
+              </NuxtLink>
+              <NuxtLink
+                to="/cykliczne"
+                class="inline-flex items-center px-1 pt-1 text-sm font-medium"
+                active-class="border-b-2 border-primary-500 text-gray-900 dark:text-white"
+                inactive-class="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+              >
+                Cykliczne
+              </NuxtLink>
+              <NuxtLink
                 to="/przychody"
                 class="inline-flex items-center px-1 pt-1 text-sm font-medium"
                 active-class="border-b-2 border-primary-500 text-gray-900 dark:text-white"
@@ -122,6 +138,24 @@
                 @click="mobileMenuOpen = false"
               >
                 Wydatki
+              </NuxtLink>
+              <NuxtLink
+                to="/akceptacja"
+                class="flex items-center px-4 py-3 text-sm font-medium rounded-lg"
+                active-class="bg-primary-500 text-white"
+                inactive-class="text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800"
+                @click="mobileMenuOpen = false"
+              >
+                Akceptacja
+              </NuxtLink>
+              <NuxtLink
+                to="/cykliczne"
+                class="flex items-center px-4 py-3 text-sm font-medium rounded-lg"
+                active-class="bg-primary-500 text-white"
+                inactive-class="text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800"
+                @click="mobileMenuOpen = false"
+              >
+                Cykliczne
               </NuxtLink>
               <NuxtLink
                 to="/przychody"

@@ -26,9 +26,6 @@
                 <div class="text-xs text-gray-500 mt-0.5">
                   {{ loan.bank_name }}
                 </div>
-                <div class="text-xs text-gray-500 mt-0.5">
-                  {{ loan.loan_purpose }}
-                </div>
               </div>
               <UDropdownMenu :items="getDropdownItems(loan)">
                 <UButton
@@ -62,8 +59,25 @@
               </div>
             </div>
 
-            <div class="text-xs text-gray-500">
+            <div class="text-xs text-gray-500 mb-2">
               {{ formatDate(loan.start_date) }} - {{ formatDate(loan.end_date) }}
+            </div>
+            <div class="space-y-1">
+              <div class="flex items-center gap-2 text-xs">
+                <span class="text-green-600 dark:text-green-400">
+                  Zapłacone: {{ getPaymentInfo(loan).paid }}
+                </span>
+                <span class="text-gray-400">|</span>
+                <span class="text-red-600 dark:text-red-400">
+                  Pozostało: {{ getPaymentInfo(loan).remaining }}
+                </span>
+              </div>
+              <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+                <div
+                  class="bg-gradient-to-r from-green-500 to-green-600 h-2 rounded-full transition-all"
+                  :style="{ width: getPaymentInfo(loan).percentage + '%' }"
+                />
+              </div>
             </div>
           </div>
         </UCard>
@@ -85,11 +99,6 @@
                 Bank
               </th>
               <th
-                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-              >
-                Cel
-              </th>
-              <th
                 class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider"
               >
                 Rata miesięczna
@@ -98,6 +107,11 @@
                 class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
               >
                 Okres
+              </th>
+              <th
+                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+              >
+                Postęp
               </th>
               <th
                 class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider"
@@ -126,9 +140,6 @@
               <td class="px-6 py-4 whitespace-nowrap text-sm">
                 {{ loan.bank_name }}
               </td>
-              <td class="px-6 py-4 whitespace-nowrap text-sm">
-                {{ loan.loan_purpose }}
-              </td>
               <td
                 class="px-6 py-4 whitespace-nowrap text-sm text-right font-medium"
               >
@@ -136,6 +147,28 @@
               </td>
               <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                 {{ formatDate(loan.start_date) }} - {{ formatDate(loan.end_date) }}
+              </td>
+              <td class="px-6 py-4 text-sm">
+                <div class="space-y-2 min-w-[180px]">
+                  <div class="flex items-center gap-3 text-xs">
+                    <span class="text-green-600 dark:text-green-400 font-medium">
+                      {{ getPaymentInfo(loan).paid }}
+                    </span>
+                    <span class="text-gray-400">/</span>
+                    <span class="text-red-600 dark:text-red-400 font-medium">
+                      {{ getPaymentInfo(loan).remaining }}
+                    </span>
+                    <span class="text-gray-400 ml-auto">
+                      {{ getPaymentInfo(loan).percentage }}%
+                    </span>
+                  </div>
+                  <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+                    <div
+                      class="bg-gradient-to-r from-green-500 to-green-600 h-2 rounded-full transition-all"
+                      :style="{ width: getPaymentInfo(loan).percentage + '%' }"
+                    />
+                  </div>
+                </div>
               </td>
               <td class="px-6 py-4 whitespace-nowrap text-sm text-center">
                 <UBadge
@@ -166,6 +199,24 @@
           </tbody>
         </table>
       </div>
+
+      <!-- Summary -->
+      <div class="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div class="text-center sm:text-left">
+            <div class="text-sm text-gray-500">Aktywne kredyty</div>
+            <div class="text-2xl font-bold">{{ activeLoansCount }}</div>
+          </div>
+          <div class="text-center sm:text-left">
+            <div class="text-sm text-gray-500">Suma miesięcznych rat</div>
+            <div class="text-2xl font-bold">{{ formatCurrency(totalMonthlyPayments) }}</div>
+          </div>
+          <div class="text-center sm:text-left">
+            <div class="text-sm text-gray-500">Wszystkie kredyty</div>
+            <div class="text-2xl font-bold">{{ loans.length }}</div>
+          </div>
+        </div>
+      </div>
     </UCard>
 
     <!-- Add/Edit Modal -->
@@ -178,10 +229,6 @@
 
           <UFormField label="Bank" name="bank_name" required>
             <UInput v-model="formState.bank_name" placeholder="np. PKO BP" />
-          </UFormField>
-
-          <UFormField label="Cel kredytu" name="loan_purpose" required>
-            <UInput v-model="formState.loan_purpose" placeholder="np. dom, samochód, komputer" />
           </UFormField>
 
           <UFormField label="Rata miesięczna (PLN)" name="monthly_amount" required>
@@ -244,7 +291,7 @@ const editingLoan = ref<Loan | null>(null);
 const formState = reactive({
   title: '',
   bank_name: '',
-  loan_purpose: '',
+  loan_purpose: 'Kredyt',
   monthly_amount: 0,
   start_date: '',
   end_date: '',
@@ -254,7 +301,7 @@ const formState = reactive({
 const resetForm = () => {
   formState.title = '';
   formState.bank_name = '';
-  formState.loan_purpose = '';
+  formState.loan_purpose = 'Kredyt';
   formState.monthly_amount = 0;
   formState.start_date = '';
   formState.end_date = '';
@@ -359,6 +406,46 @@ const isLoanActive = (loan: Loan) => {
   const today = new Date().toISOString().split('T')[0];
   return loan.start_date <= today && loan.end_date >= today;
 };
+
+const getPaymentInfo = (loan: Loan) => {
+  const startDate = new Date(loan.start_date);
+  const endDate = new Date(loan.end_date);
+  const today = new Date();
+
+  // Calculate total months between start and end
+  const totalMonths = (endDate.getFullYear() - startDate.getFullYear()) * 12
+    + (endDate.getMonth() - startDate.getMonth()) + 1;
+
+  // Calculate elapsed months
+  let elapsedMonths = 0;
+  if (today >= startDate) {
+    elapsedMonths = Math.min(
+      (today.getFullYear() - startDate.getFullYear()) * 12
+        + (today.getMonth() - startDate.getMonth()) + 1,
+      totalMonths
+    );
+  }
+
+  const remainingMonths = Math.max(0, totalMonths - elapsedMonths);
+  const percentage = totalMonths > 0 ? Math.round((elapsedMonths / totalMonths) * 100) : 0;
+
+  return {
+    paid: elapsedMonths,
+    remaining: remainingMonths,
+    total: totalMonths,
+    percentage
+  };
+};
+
+const activeLoansCount = computed(() => {
+  return loans.value.filter(loan => isLoanActive(loan)).length;
+});
+
+const totalMonthlyPayments = computed(() => {
+  return loans.value
+    .filter(loan => isLoanActive(loan))
+    .reduce((sum, loan) => sum + Number(loan.monthly_amount), 0);
+});
 
 const formatDate = (date: string) => {
   return new Date(date).toLocaleDateString('pl-PL');
