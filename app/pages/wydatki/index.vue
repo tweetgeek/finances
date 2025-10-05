@@ -2,19 +2,9 @@
   <div>
     <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-6 sm:mb-8">
       <h1 class="text-2xl sm:text-3xl font-bold">Wydatki</h1>
-      <div class="flex flex-col sm:flex-row gap-2">
-        <UButton
-          color="neutral"
-          variant="outline"
-          @click="$router.push('/wydatki/akceptuj')"
-          class="w-full sm:w-auto"
-        >
-          Panel akceptacji
-        </UButton>
-        <UButton @click="$router.push('/wydatki/nowy')" class="w-full sm:w-auto">
-          Dodaj wydatek
-        </UButton>
-      </div>
+      <UButton @click="$router.push('/wydatki/nowy')" class="w-full sm:w-auto">
+        Dodaj wydatek
+      </UButton>
     </div>
 
     <!-- Filters -->
