@@ -84,7 +84,7 @@
       </div>
 
       <!-- Desktop view - Table -->
-      <div class="hidden md:block overflow-x-auto">
+      <div class="hidden md:block overflow-x-auto -mx-6 px-6">
         <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
           <thead class="bg-gray-50 dark:bg-gray-800">
             <tr>
@@ -222,7 +222,8 @@
     <!-- Add/Edit Modal -->
     <UModal v-model:open="showAddModal" :title="editingLoan ? 'Edytuj kredyt' : 'Dodaj kredyt'">
       <template #content>
-        <UForm :state="formState" @submit="saveLoan" class="space-y-4 p-4">
+        <div class="max-h-[80vh] overflow-y-auto overscroll-contain">
+          <UForm :state="formState" @submit="saveLoan" class="space-y-4 p-4">
           <UFormField label="Tytuł" name="title" required>
             <UInput v-model="formState.title" placeholder="np. Kredyt hipoteczny" />
           </UFormField>
@@ -253,19 +254,21 @@
             />
           </UFormField>
 
-          <div class="flex justify-end gap-2 pt-4">
+          <div class="flex flex-col sm:flex-row justify-end gap-2 pt-4 sticky bottom-0 bg-white dark:bg-gray-900 -mb-4 pb-4">
             <UButton
               color="neutral"
               variant="outline"
               @click="showAddModal = false"
+              class="w-full sm:w-auto"
             >
               Anuluj
             </UButton>
-            <UButton type="submit">
+            <UButton type="submit" class="w-full sm:w-auto">
               {{ editingLoan ? 'Zapisz' : 'Dodaj' }}
             </UButton>
           </div>
         </UForm>
+        </div>
       </template>
     </UModal>
   </div>

@@ -18,7 +18,7 @@
       <UButton @click="$router.push('/wydatki')"> Powrót do listy </UButton>
     </UCard>
 
-    <UCard v-else>
+    <UCard v-else class="max-h-[calc(100vh-8rem)] overflow-y-auto overscroll-contain">
       <form class="space-y-6" @submit.prevent="handleSubmit">
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
           <!-- Basic Info -->
@@ -197,15 +197,16 @@
         </div>
 
         <!-- Submit -->
-        <div class="flex justify-end space-x-4 pt-6">
+        <div class="flex flex-col sm:flex-row justify-end gap-2 sm:space-x-4 pt-6 sticky bottom-0 bg-white dark:bg-gray-900 -mx-6 px-6 pb-6">
           <UButton
             color="neutral"
             variant="ghost"
             @click="$router.push('/wydatki')"
+            class="w-full sm:w-auto"
           >
             Anuluj
           </UButton>
-          <UButton type="submit" :loading="saving"> Zapisz zmiany </UButton>
+          <UButton type="submit" :loading="saving" class="w-full sm:w-auto"> Zapisz zmiany </UButton>
         </div>
       </form>
     </UCard>

@@ -100,7 +100,8 @@
             </h3>
           </template>
 
-          <form class="space-y-4" @submit.prevent="saveRecurring">
+          <div class="max-h-[70vh] overflow-y-auto overscroll-contain px-6">
+            <form class="space-y-4 py-4" @submit.prevent="saveRecurring">
             <UFormField label="Tytuł" name="title" required>
               <UInput v-model="recurringForm.title" required />
             </UFormField>
@@ -215,18 +216,20 @@
               <UTextarea v-model="recurringForm.note" rows="2" />
             </UFormField>
 
-            <div class="flex justify-end gap-2 pt-4">
+            <div class="flex flex-col sm:flex-row justify-end gap-2 pt-4 sticky bottom-0 bg-white dark:bg-gray-900 -mx-6 px-6 pb-4">
               <UButton
                 type="button"
                 color="neutral"
                 variant="ghost"
                 @click="showAddModal = false"
+                class="w-full sm:w-auto"
               >
                 Anuluj
               </UButton>
-              <UButton type="submit" :loading="saving"> Zapisz </UButton>
+              <UButton type="submit" :loading="saving" class="w-full sm:w-auto"> Zapisz </UButton>
             </div>
           </form>
+          </div>
         </UCard>
       </template>
     </UModal>
