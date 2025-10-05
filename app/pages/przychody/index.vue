@@ -85,7 +85,7 @@
       </div>
 
       <!-- Desktop view - Table -->
-      <div class="hidden md:block overflow-x-auto">
+      <div class="hidden md:block overflow-x-auto -mx-6 px-6">
         <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
           <thead class="bg-gray-50 dark:bg-gray-800">
             <tr>
@@ -203,7 +203,8 @@
       :title="editingIncome ? 'Edytuj przychód' : 'Dodaj przychód'"
     >
       <template #content>
-        <form class="space-y-4 p-3 sm:p-4" @submit.prevent="handleSubmit">
+        <div class="max-h-[80vh] overflow-y-auto overscroll-contain">
+          <form class="space-y-4 p-4" @submit.prevent="handleSubmit">
           <UFormField label="Tytuł" name="title" required>
             <UInput
               v-model="form.title"
@@ -286,7 +287,7 @@
             />
           </UFormField>
 
-          <div class="flex flex-col sm:flex-row justify-end gap-2 sm:space-x-2">
+          <div class="flex flex-col sm:flex-row justify-end gap-2 sm:space-x-2 sticky bottom-0 bg-white dark:bg-gray-900 pt-4 -mb-4 pb-4">
             <UButton color="neutral" variant="ghost" @click="closeModal" class="w-full sm:w-auto">
               Anuluj
             </UButton>
@@ -295,6 +296,7 @@
             </UButton>
           </div>
         </form>
+        </div>
       </template>
     </UModal>
   </div>

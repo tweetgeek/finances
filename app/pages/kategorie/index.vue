@@ -49,7 +49,8 @@
       :title="editingCategory ? 'Edytuj kategorię' : 'Dodaj kategorię'"
     >
       <template #content>
-        <form class="space-y-4 p-3 sm:p-4" @submit.prevent="handleSubmit">
+        <div class="max-h-[80vh] overflow-y-auto overscroll-contain">
+          <form class="space-y-4 p-4" @submit.prevent="handleSubmit">
           <UFormField label="Nazwa" name="name" required>
             <UInput
               v-model="form.name"
@@ -80,7 +81,7 @@
             />
           </UFormField>
 
-          <div class="flex flex-col sm:flex-row justify-end gap-2 sm:space-x-2">
+          <div class="flex flex-col sm:flex-row justify-end gap-2 sm:space-x-2 sticky bottom-0 bg-white dark:bg-gray-900 pt-4 -mb-4 pb-4">
             <UButton color="neutral" variant="ghost" @click="closeModal" class="w-full sm:w-auto">
               Anuluj
             </UButton>
@@ -89,6 +90,7 @@
             </UButton>
           </div>
         </form>
+        </div>
       </template>
     </UModal>
   </div>

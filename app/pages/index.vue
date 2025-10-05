@@ -61,9 +61,10 @@
           <h2 class="text-lg font-semibold">Kalendarz płatności</h2>
         </template>
 
-        <div class="grid grid-cols-7 gap-2">
+        <div class="overflow-x-auto -mx-4 px-4 sm:mx-0 sm:px-0">
+          <div class="grid grid-cols-7 gap-1 sm:gap-2 min-w-full">
           <!-- Header -->
-          <div v-for="day in daysOfWeek" :key="day" class="text-center text-xs font-semibold text-gray-500 p-2">
+          <div v-for="day in daysOfWeek" :key="day" class="text-center text-xs font-semibold text-gray-500 p-1 sm:p-2">
             {{ day }}
           </div>
 
@@ -71,20 +72,20 @@
           <div
             v-for="day in calendarDays"
             :key="day.date"
-            class="min-h-[100px] border border-gray-200 dark:border-gray-700 rounded p-2 relative"
+            class="min-h-[80px] sm:min-h-[100px] border border-gray-200 dark:border-gray-700 rounded p-1 sm:p-2 relative"
             :class="{
               'bg-gray-50 dark:bg-gray-800': !day.isCurrentMonth,
               'bg-primary-50 dark:bg-primary-900/20': day.isToday,
             }"
           >
-            <div class="text-xs font-semibold mb-1" :class="{ 'text-gray-400': !day.isCurrentMonth }">
+            <div class="text-[10px] sm:text-xs font-semibold mb-0.5 sm:mb-1" :class="{ 'text-gray-400': !day.isCurrentMonth }">
               {{ day.dayNumber }}
             </div>
-            <div class="space-y-1">
+            <div class="space-y-0.5 sm:space-y-1">
               <div
                 v-for="(payment, index) in getVisiblePayments(day)"
                 :key="payment.id"
-                class="text-xs p-1 rounded truncate"
+                class="text-[9px] sm:text-xs p-0.5 sm:p-1 rounded truncate"
                 :class="{
                   'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300': payment.type === 'expense' && payment.isPaid,
                   'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300': payment.type === 'expense' && !payment.isPaid,
@@ -99,14 +100,15 @@
               <button
                 v-if="hasMorePayments(day)"
                 @click="toggleDayExpanded(day.date)"
-                class="text-xs text-primary-600 dark:text-primary-400 hover:underline w-full text-left p-1"
+                class="text-[9px] sm:text-xs text-primary-600 dark:text-primary-400 hover:underline w-full text-left p-0.5 sm:p-1"
               >
                 {{ isDayExpanded(day.date)
                   ? 'Zwiń'
-                  : `+${day.payments.length - maxVisiblePayments} więcej`
+                  : `+${day.payments.length - maxVisiblePayments}`
                 }}
               </button>
             </div>
+          </div>
           </div>
         </div>
 

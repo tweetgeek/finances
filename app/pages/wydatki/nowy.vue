@@ -13,7 +13,7 @@
       <h1 class="text-2xl sm:text-3xl font-bold mt-4">Dodaj wydatek</h1>
     </div>
 
-    <UCard>
+    <UCard class="max-h-[calc(100vh-8rem)] overflow-y-auto overscroll-contain">
       <form class="space-y-4 sm:space-y-6" @submit.prevent="handleSubmit">
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
           <!-- Basic Info -->
@@ -216,15 +216,16 @@
         </div>
 
         <!-- Submit -->
-        <div class="flex justify-end space-x-4 pt-6">
+        <div class="flex flex-col sm:flex-row justify-end gap-2 sm:space-x-4 pt-6 sticky bottom-0 bg-white dark:bg-gray-900 -mx-6 px-6 pb-6">
           <UButton
             color="neutral"
             variant="ghost"
             @click="$router.push('/wydatki')"
+            class="w-full sm:w-auto"
           >
             Anuluj
           </UButton>
-          <UButton type="submit" :loading="saving"> Zapisz wydatek </UButton>
+          <UButton type="submit" :loading="saving" class="w-full sm:w-auto"> Zapisz wydatek </UButton>
         </div>
       </form>
     </UCard>
