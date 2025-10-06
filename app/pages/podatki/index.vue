@@ -38,7 +38,7 @@
         </UFormField>
         <UFormField label="Typ">
           <USelect
-            v-model="filters.type"
+            v-model="filters.value.type"
             placeholder="Wszystkie"
             :items="taxTypes"
           />

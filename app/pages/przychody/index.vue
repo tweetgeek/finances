@@ -380,10 +380,10 @@ const loadIncomes = async () => {
 
 const filteredIncomes = computed(() => {
   return incomes.value.filter((income) => {
-    if (filters.dateFrom && income.issue_date < filters.dateFrom) return false;
-    if (filters.dateTo && income.issue_date > filters.dateTo) return false;
-    if (filters.companyType === 'company' && !income.is_company) return false;
-    if (filters.companyType === 'private' && income.is_company) return false;
+    if (filters.value.dateFrom && income.issue_date < filters.value.dateFrom) return false;
+    if (filters.value.dateTo && income.issue_date > filters.value.dateTo) return false;
+    if (filters.value.companyType === 'company' && !income.is_company) return false;
+    if (filters.value.companyType === 'private' && income.is_company) return false;
     return true;
   });
 });
