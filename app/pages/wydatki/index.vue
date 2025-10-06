@@ -345,12 +345,12 @@ const loadExpenses = async () => {
 
 const filteredExpenses = computed(() => {
   return expensesWithCategories.value.filter((expense) => {
-    if (filters.dateFrom && expense.issue_date < filters.dateFrom) return false;
-    if (filters.dateTo && expense.issue_date > filters.dateTo) return false;
-    if (filters.paymentStatus === 'paid' && !expense.is_paid) return false;
-    if (filters.paymentStatus === 'unpaid' && expense.is_paid) return false;
-    if (filters.companyType === 'company' && !expense.is_company) return false;
-    if (filters.companyType === 'private' && expense.is_company) return false;
+    if (filters.value.dateFrom && expense.issue_date < filters.value.dateFrom) return false;
+    if (filters.value.dateTo && expense.issue_date > filters.value.dateTo) return false;
+    if (filters.value.paymentStatus === 'paid' && !expense.is_paid) return false;
+    if (filters.value.paymentStatus === 'unpaid' && expense.is_paid) return false;
+    if (filters.value.companyType === 'company' && !expense.is_company) return false;
+    if (filters.value.companyType === 'private' && expense.is_company) return false;
     return true;
   });
 });
