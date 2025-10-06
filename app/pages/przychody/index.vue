@@ -7,6 +7,18 @@
 
     <!-- Filters -->
     <UCard class="mb-6">
+      <div class="flex justify-between items-center mb-4">
+        <h3 class="text-sm font-medium text-gray-700 dark:text-gray-300">Filtry</h3>
+        <UButton
+          color="neutral"
+          variant="ghost"
+          size="xs"
+          icon="i-heroicons-x-mark"
+          @click="clearFilters"
+        >
+          Wyczyść filtry
+        </UButton>
+      </div>
       <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
         <UFormField label="Od daty">
           <UInput v-model="filters.dateFrom" type="date" />
@@ -322,11 +334,18 @@ const editingIncome = ref<Income | null>(null);
 const saving = ref(false);
 const activeField = ref<'net' | 'gross'>('gross');
 
-const filters = reactive({
-  dateFrom: '',
-  dateTo: '',
+// Use filter persistence
+const now = new Date();
+const firstDay = new Date(now.getFullYear(), now.getMonth(), 1);
+const lastDay = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+
+const { filters: persistedFilters, clearFilters } = useFilterPersistence('przychody', {
+  dateFrom: firstDay.toISOString().split('T')[0],
+  dateTo: lastDay.toISOString().split('T')[0],
   companyType: null as string | null,
 });
+
+const filters = persistedFilters;
 
 const form = reactive({
   title: '',
@@ -550,14 +569,6 @@ watch(
 );
 
 onMounted(() => {
-  // Set default date range (current month)
-  const now = new Date();
-  const firstDay = new Date(now.getFullYear(), now.getMonth(), 1);
-  const lastDay = new Date(now.getFullYear(), now.getMonth() + 1, 0);
-
-  filters.dateFrom = firstDay.toISOString().split('T')[0];
-  filters.dateTo = lastDay.toISOString().split('T')[0];
-
   loadIncomes();
 });
 </script>
