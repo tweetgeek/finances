@@ -149,32 +149,27 @@
           <thead class="bg-gray-50 dark:bg-gray-800">
             <tr>
               <th
-                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
               >
                 Data
               </th>
               <th
-                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
               >
                 Tytuł
               </th>
               <th
-                class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider"
+                class="px-3 py-2 text-right text-xs font-medium text-gray-500 uppercase tracking-wider"
               >
-                Kwota brutto
+                Kwota
               </th>
               <th
-                class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider"
-              >
-                Typ
-              </th>
-              <th
-                class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider"
+                class="px-3 py-2 text-center text-xs font-medium text-gray-500 uppercase tracking-wider"
               >
                 Status
               </th>
               <th
-                class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider"
+                class="px-3 py-2 text-right text-xs font-medium text-gray-500 uppercase tracking-wider"
               >
                 Akcje
               </th>
@@ -183,75 +178,84 @@
           <tbody
             class="bg-white dark:bg-gray-900 divide-y divide-gray-200 dark:divide-gray-700"
           >
-            <tr v-for="expense in filteredExpenses" :key="expense.id">
-              <td class="px-6 py-4 whitespace-nowrap text-sm">
+            <tr v-for="expense in filteredExpenses" :key="expense.id" class="hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors">
+              <td class="px-3 py-2 whitespace-nowrap text-sm text-gray-600 dark:text-gray-400">
                 {{ formatDate(expense.issue_date) }}
               </td>
-              <td class="px-6 py-4 text-sm">
-                <div class="font-medium">{{ expense.title }}</div>
-                <div
-                  v-if="expense.counterparty"
-                  class="text-gray-500 text-xs mt-0.5"
-                >
-                  {{ expense.counterparty }}
-                </div>
-                <div
-                  v-if="expense.invoice_number"
-                  class="text-gray-500 text-xs mt-0.5"
-                >
-                  {{ expense.invoice_number }}
-                </div>
-                <div v-if="expense.categories.length > 0" class="flex flex-wrap gap-1 mt-1.5">
-                  <UBadge
-                    v-for="cat in expense.categories"
-                    :key="cat.id"
-                    color="neutral"
-                    variant="subtle"
-                    size="xs"
-                  >
-                    <div class="flex items-center gap-1">
-                      <div
-                        class="w-2 h-2 rounded-full"
-                        :style="{ backgroundColor: cat.color || '#3b82f6' }"
-                      />
-                      {{ cat.name }}
+              <td class="px-3 py-2 text-sm">
+                <div class="flex items-start gap-2">
+                  <div class="flex-1 min-w-0">
+                    <div class="font-medium text-gray-900 dark:text-gray-100">{{ expense.title }}</div>
+                    <div class="flex items-center gap-2 mt-0.5">
+                      <span
+                        v-if="expense.counterparty"
+                        class="text-gray-500 dark:text-gray-400 text-xs"
+                      >
+                        {{ expense.counterparty }}
+                      </span>
+                      <span
+                        v-if="expense.invoice_number"
+                        class="text-gray-500 dark:text-gray-400 text-xs"
+                      >
+                        • {{ expense.invoice_number }}
+                      </span>
                     </div>
-                  </UBadge>
+                    <div v-if="expense.categories.length > 0" class="flex flex-wrap gap-1 mt-1">
+                      <UBadge
+                        v-for="cat in expense.categories"
+                        :key="cat.id"
+                        color="neutral"
+                        variant="subtle"
+                        size="xs"
+                      >
+                        <div class="flex items-center gap-1">
+                          <div
+                            class="w-1.5 h-1.5 rounded-full"
+                            :style="{ backgroundColor: cat.color || '#3b82f6' }"
+                          />
+                          {{ cat.name }}
+                        </div>
+                      </UBadge>
+                    </div>
+                  </div>
                 </div>
               </td>
               <td
-                class="px-6 py-4 whitespace-nowrap text-sm text-right font-medium"
+                class="px-3 py-2 whitespace-nowrap text-sm text-right"
               >
-                <div>{{ formatCurrency(expense.amount_gross, expense.currency_code || 'PLN') }}</div>
+                <div class="font-semibold text-gray-900 dark:text-gray-100">{{ formatCurrency(expense.amount_gross, expense.currency_code || 'PLN') }}</div>
                 <div
                   v-if="expense.currency_code !== 'PLN' && expense.amount_gross_pln"
-                  class="text-xs text-gray-500"
+                  class="text-xs text-gray-500 dark:text-gray-400"
                 >
                   ≈ {{ formatCurrency(expense.amount_gross_pln, 'PLN') }}
                 </div>
               </td>
-              <td class="px-6 py-4 whitespace-nowrap text-sm text-center">
-                <UBadge
-                  :color="expense.is_company ? 'info' : 'neutral'"
-                  variant="subtle"
-                >
-                  {{ expense.is_company ? 'Firmowy' : 'Prywatny' }}
-                </UBadge>
+              <td class="px-3 py-2 whitespace-nowrap text-sm">
+                <div class="flex flex-col items-center gap-1">
+                  <UBadge
+                    :color="expense.is_paid ? 'success' : 'error'"
+                    variant="subtle"
+                    size="xs"
+                  >
+                    {{ expense.is_paid ? 'Opłacone' : 'Nieopłacone' }}
+                  </UBadge>
+                  <UBadge
+                    :color="expense.is_company ? 'info' : 'neutral'"
+                    variant="subtle"
+                    size="xs"
+                  >
+                    {{ expense.is_company ? 'Firmowy' : 'Prywatny' }}
+                  </UBadge>
+                </div>
               </td>
-              <td class="px-6 py-4 whitespace-nowrap text-sm text-center">
-                <UBadge
-                  :color="expense.is_paid ? 'success' : 'error'"
-                  variant="subtle"
-                >
-                  {{ expense.is_paid ? 'Opłacone' : 'Nieopłacone' }}
-                </UBadge>
-              </td>
-              <td class="px-6 py-4 whitespace-nowrap text-right text-sm">
+              <td class="px-3 py-2 whitespace-nowrap text-right text-sm">
                 <UDropdownMenu :items="getDropdownItems(expense)">
                   <UButton
                     color="neutral"
                     variant="ghost"
                     icon="i-heroicons-ellipsis-vertical"
+                    size="xs"
                   />
                 </UDropdownMenu>
               </td>
