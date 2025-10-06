@@ -62,11 +62,22 @@
     <UCard v-else>
       <!-- Mobile view - Cards -->
       <div class="md:hidden space-y-4">
-        <UCard v-for="expense in filteredExpenses" :key="expense.id">
+        <UCard v-for="expense in filteredExpenses" :key="expense.id"
+               :class="expense.isLoanInstallment ? 'ring-2 ring-blue-200 dark:ring-blue-800' : ''">
           <div class="space-y-3">
             <div class="flex justify-between items-start">
               <div class="flex-1">
-                <div class="font-medium text-base">{{ expense.title }}</div>
+                <div class="flex items-center gap-2">
+                  <div class="font-medium text-base">{{ expense.title }}</div>
+                  <UBadge
+                    v-if="expense.isLoanInstallment"
+                    color="info"
+                    variant="subtle"
+                    size="xs"
+                  >
+                    Kredyt
+                  </UBadge>
+                </div>
                 <div class="text-xs text-gray-500 mt-0.5">
                   {{ formatDate(expense.issue_date) }}
                 </div>
@@ -83,7 +94,7 @@
                   {{ expense.invoice_number }}
                 </div>
               </div>
-              <UDropdownMenu :items="getDropdownItems(expense)">
+              <UDropdownMenu v-if="!expense.isLoanInstallment" :items="getDropdownItems(expense)">
                 <UButton
                   color="neutral"
                   variant="ghost"
@@ -91,6 +102,7 @@
                   size="sm"
                 />
               </UDropdownMenu>
+              <span v-else class="text-xs text-gray-400 italic">Tylko info</span>
             </div>
 
             <div class="flex justify-between items-center">
@@ -178,14 +190,30 @@
           <tbody
             class="bg-white dark:bg-gray-900 divide-y divide-gray-200 dark:divide-gray-700"
           >
-            <tr v-for="expense in filteredExpenses" :key="expense.id" class="hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors">
+            <tr v-for="expense in filteredExpenses" :key="expense.id"
+                :class="[
+                  'transition-colors',
+                  expense.isLoanInstallment
+                    ? 'bg-blue-50/50 dark:bg-blue-950/20'
+                    : 'hover:bg-gray-50 dark:hover:bg-gray-800/50'
+                ]">
               <td class="px-3 py-2 whitespace-nowrap text-sm text-gray-600 dark:text-gray-400">
                 {{ formatDate(expense.issue_date) }}
               </td>
               <td class="px-3 py-2 text-sm">
                 <div class="flex items-start gap-2">
                   <div class="flex-1 min-w-0">
-                    <div class="font-medium text-gray-900 dark:text-gray-100">{{ expense.title }}</div>
+                    <div class="flex items-center gap-2">
+                      <div class="font-medium text-gray-900 dark:text-gray-100">{{ expense.title }}</div>
+                      <UBadge
+                        v-if="expense.isLoanInstallment"
+                        color="info"
+                        variant="subtle"
+                        size="xs"
+                      >
+                        Kredyt
+                      </UBadge>
+                    </div>
                     <div class="flex items-center gap-2 mt-0.5">
                       <span
                         v-if="expense.counterparty"
@@ -250,7 +278,7 @@
                 </div>
               </td>
               <td class="px-3 py-2 whitespace-nowrap text-right text-sm">
-                <UDropdownMenu :items="getDropdownItems(expense)">
+                <UDropdownMenu v-if="!expense.isLoanInstallment" :items="getDropdownItems(expense)">
                   <UButton
                     color="neutral"
                     variant="ghost"
@@ -258,6 +286,7 @@
                     size="xs"
                   />
                 </UDropdownMenu>
+                <span v-else class="text-xs text-gray-400 italic">Tylko info</span>
               </td>
             </tr>
           </tbody>
@@ -288,15 +317,19 @@ definePageMeta({
 
 type Expense = Database['public']['Tables']['expenses']['Row'];
 type Category = Database['public']['Tables']['categories']['Row'];
+type Loan = Database['public']['Tables']['loans']['Row'];
 
 interface ExpenseWithCategories extends Expense {
   categories: Category[];
+  isLoanInstallment?: boolean;
+  loanId?: string;
 }
 
 const supabase = useSupabaseClient<Database>();
 const user = useSupabaseUser();
 
 const expenses = ref<Expense[]>([]);
+const loans = ref<Loan[]>([]);
 const expensesWithCategories = ref<ExpenseWithCategories[]>([]);
 const loading = ref(true);
 
@@ -318,6 +351,8 @@ const loadExpenses = async () => {
   if (!user.value) return;
 
   loading.value = true;
+
+  // Load expenses
   const { data, error } = await supabase
     .from('expenses')
     .select('*')
@@ -344,11 +379,24 @@ const loadExpenses = async () => {
     }
     expensesWithCategories.value = withCategories;
   }
+
+  // Load loans
+  const { data: loansData, error: loansError } = await supabase
+    .from('loans')
+    .select('*')
+    .eq('user_id', user.value.sub);
+
+  if (loansError) {
+    console.error('Error loading loans:', loansError);
+  } else {
+    loans.value = loansData || [];
+  }
+
   loading.value = false;
 };
 
 const filteredExpenses = computed(() => {
-  return expensesWithCategories.value.filter((expense) => {
+  const filtered = expensesWithCategories.value.filter((expense) => {
     if (filters.value.dateFrom && expense.issue_date < filters.value.dateFrom) return false;
     if (filters.value.dateTo && expense.issue_date > filters.value.dateTo) return false;
     if (filters.value.paymentStatus === 'paid' && !expense.is_paid) return false;
@@ -357,6 +405,65 @@ const filteredExpenses = computed(() => {
     if (filters.value.companyType === 'private' && expense.is_company) return false;
     return true;
   });
+
+  // Add active loan installments for the filtered date range
+  const loanInstallments: ExpenseWithCategories[] = [];
+
+  if (filters.value.dateFrom && filters.value.dateTo) {
+    const fromDate = new Date(filters.value.dateFrom);
+    const toDate = new Date(filters.value.dateTo);
+
+    for (const loan of loans.value) {
+      const loanStart = new Date(loan.start_date);
+      const loanEnd = new Date(loan.end_date);
+
+      // Check if loan is active during the filtered period
+      if (loanStart <= toDate && loanEnd >= fromDate) {
+        // Generate installment for the middle of the month range
+        const installmentDate = new Date(fromDate.getFullYear(), fromDate.getMonth(), 15);
+        const installmentDateStr = installmentDate.toISOString().split('T')[0];
+
+        // Apply filters
+        if (filters.value.companyType === 'company' && !loan.is_company) continue;
+        if (filters.value.companyType === 'private' && loan.is_company) continue;
+
+        loanInstallments.push({
+          id: `loan-${loan.id}-${installmentDateStr}`,
+          user_id: loan.user_id,
+          title: `${loan.title} - Rata`,
+          counterparty: loan.bank_name,
+          invoice_number: null,
+          amount_gross: loan.monthly_amount,
+          amount_gross_pln: loan.monthly_amount,
+          amount_net: null,
+          amount_net_pln: null,
+          vat_amount: null,
+          vat_amount_pln: null,
+          vat_rate: 0,
+          currency_code: 'PLN',
+          exchange_rate: null,
+          issue_date: installmentDateStr,
+          due_date: null,
+          paid_at: null,
+          is_paid: true, // Assume loans are paid
+          is_company: loan.is_company,
+          note: null,
+          deductible_override: null,
+          deductible_ratio: null,
+          created_at: loan.created_at,
+          updated_at: loan.updated_at,
+          categories: [],
+          isLoanInstallment: true,
+          loanId: loan.id,
+        });
+      }
+    }
+  }
+
+  // Combine and sort by date
+  return [...filtered, ...loanInstallments].sort((a, b) =>
+    b.issue_date.localeCompare(a.issue_date)
+  );
 });
 
 const totalAmount = computed(() => {
