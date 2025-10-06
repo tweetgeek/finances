@@ -9,6 +9,18 @@
 
     <!-- Period selector -->
     <UCard class="mb-6">
+      <div class="flex justify-between items-center mb-4">
+        <h3 class="text-sm font-medium text-gray-700 dark:text-gray-300">Okres i filtry</h3>
+        <UButton
+          color="neutral"
+          variant="ghost"
+          size="xs"
+          icon="i-heroicons-x-mark"
+          @click="clearFilters"
+        >
+          Wyczyść filtry
+        </UButton>
+      </div>
       <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
         <UFormField label="Rok">
           <USelect
@@ -192,12 +204,17 @@ const userSettings = ref<CompanySettings | null>(null);
 const currentDate = new Date();
 // Default to previous month
 const previousMonth = new Date(currentDate.getFullYear(), currentDate.getMonth() - 1);
-const selectedYear = ref(previousMonth.getFullYear());
-const selectedMonth = ref<number | null>(previousMonth.getMonth() + 1);
 
-const filters = reactive({
+// Use filter persistence
+const { filters: persistedFilters, clearFilters } = useFilterPersistence('podatki', {
+  year: previousMonth.getFullYear(),
+  month: previousMonth.getMonth() + 1,
   type: null as string | null,
 });
+
+const selectedYear = ref(persistedFilters.value.year);
+const selectedMonth = ref<number | null>(persistedFilters.value.month);
+const filters = persistedFilters;
 
 const months = [
   { label: 'Styczeń', value: 1 },
@@ -212,6 +229,12 @@ const months = [
   { label: 'Październik', value: 10 },
   { label: 'Listopad', value: 11 },
   { label: 'Grudzień', value: 12 },
+];
+
+const taxTypes = [
+  { label: 'VAT', value: 'vat' },
+  { label: 'ZUS', value: 'zus' },
+  { label: 'Podatek dochodowy', value: 'income_tax' },
 ];
 
 const availableYears = computed(() => {
@@ -552,7 +575,14 @@ const getTaxTypeLabel = () => {
   return '';
 };
 
-watch([selectedYear, selectedMonth], () => {
+// Sync filters with selectedYear/selectedMonth
+watch(selectedYear, (newYear) => {
+  filters.value.year = newYear;
+  loadData();
+});
+
+watch(selectedMonth, (newMonth) => {
+  filters.value.month = newMonth;
   loadData();
 });
 
